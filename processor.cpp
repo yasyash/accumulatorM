@@ -69,7 +69,9 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
 
     // UPS init
-    m_ups_ip = cmdline_args.value(cmdline_args.indexOf("-upsip") +1);
+    if (cmdline_args.indexOf("-upsip") > -1)
+        m_ups_ip = cmdline_args.value(cmdline_args.indexOf("-upsip") +1);
+
     if (m_ups_ip == "")
     {
         qDebug ( "IP address of UPS is not set.\n\r");
@@ -94,7 +96,9 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
 
     // modbusip init
-    m_modbus_ip = cmdline_args.value(cmdline_args.indexOf("-moxaip") +1);
+    if (cmdline_args.indexOf("-moxaip")>-1)
+        m_modbus_ip = cmdline_args.value(cmdline_args.indexOf("-moxaip") +1);
+
     if (m_modbus_ip == "")
     {
         qDebug ( "IP address of modbus is not set.\n\r");
@@ -130,8 +134,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
 
     //topas init
-
-    m_topas_ip = cmdline_args.value(cmdline_args.indexOf("-topasip") +1);
+    if (cmdline_args.indexOf("-topasip") > -1)
+        m_topas_ip = cmdline_args.value(cmdline_args.indexOf("-topasip") +1);
     if (m_topas_ip == "")
     {
         qDebug ( "IP address of the TOPAS is not set.\n\r");
@@ -163,7 +167,9 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
     }
 
-    QString db = cmdline_args.value(cmdline_args.indexOf("-db") +1);
+    QString db ="";
+    if (cmdline_args.indexOf("-db") > -1)
+        db = cmdline_args.value(cmdline_args.indexOf("-db") +1);
     if (db == "")
     {
         // releaseModbus();
@@ -331,7 +337,9 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
 
     // EDM init for tty...
-    m_grimm_ip = cmdline_args.value(cmdline_args.indexOf("-grimmip") +1);
+
+    if (cmdline_args.indexOf("-grimmip") >-1)
+        m_grimm_ip = cmdline_args.value(cmdline_args.indexOf("-grimmip") +1);
     if ( m_grimm_ip == "")
     {
         qDebug ( "IP address of the Grimm equipment is not set.\n\r");
@@ -389,7 +397,11 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             float temp_out = (rec.field("measure").value().toFloat());
             query->finish();
 
-            QString model = cmdline_args.value(cmdline_args.indexOf("-meteomodel") +1);
+
+            QString model="";
+            if (cmdline_args.indexOf("-meteomodel") > -1){
+                model = cmdline_args.value(cmdline_args.indexOf("-meteomodel") +1);
+            }
 
             if (model == ""){
 
