@@ -29,16 +29,22 @@ class TopasIP : public QObject
     Q_OBJECT
 
 public:
-    TopasIP(QObject *parent, QString *ip, quint16 *port);
+    TopasIP(QObject *parent, QString *ip, quint16 *port, QString *serialnum);
 
     virtual ~TopasIP();
     int toAscii(int *_ch);
-    void sendData(int command, QString serialnum, QString msg);
+    void sendData(QString command, QString serialnum);
+    void setTime ( QString serialnum, QString msg);
+    void startSample();
+    void stopSample();
+    void readSample();
+
+    QByteArray crcTopas(QByteArray command);
 
 signals:
     void tcpPortActive(bool val);
     void connectionError(const QString &msg);
-    void dataIsReady( bool *is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample  );
+    void dataIsReady( bool *is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample  );
 
 
 protected:
@@ -62,11 +68,14 @@ public:
     int m_type = 485;
     enum _command {RDMN, MSTATUS, MSTART, MSTOP, RMMEAS};
     QString model;
+    QString serialnum;
     QString status;
-    bool is_read;
+    bool is_read = false;
     QMap<QString, int> *sample_t;
-    QMap<QString, int> *measure;
+    QMap<QString, float> *measure;
     enum _command last_command;
+    QString lastCommand ="";
+
     QAbstractSocket::SocketState connected = QAbstractSocket::UnconnectedState;
     // QDataStream *in_stream;
 };

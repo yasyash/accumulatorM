@@ -146,10 +146,19 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         }
         else
         {
-            m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port);
+            QString _serialnum = cmdline_args.value(cmdline_args.indexOf("-topasnum") +1);
+            if (_serialnum == "")
+            {
+                qDebug ("TOPAS serial number ia absend error:  expected parameter\n\r");
+            }
+            else
+            {
+                m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &_serialnum);
+                if (m_topasip){
+                    connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
 
-            connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*))); //fill several data to one sensor's base
-
+                }
+            }
         }
 
     }
@@ -543,6 +552,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         m_range->insert("PM2.5", 1000000);
         m_range->insert("PM4", 1000000);
         m_range->insert("PM10", 1000000);
+
 
     } else {
 
@@ -1879,11 +1889,12 @@ void processor::readSocketStatus()
 
     if (m_topasip)
     {
-        m_topasip->sendData(6,"T1861", "msg");
-        if(verbose)
-
-            qDebug()<< "\n\rTOPAS command: " << ' ' <<"\n\r" ;
-
+        if (m_topasip->lastCommand == "")
+        {
+            m_topasip->startSample();
+        }
+        m_topasip->readSample();
+        //m_topasip->readSample();
     }
 
 }

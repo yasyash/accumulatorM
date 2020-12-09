@@ -655,7 +655,7 @@ void MeteoTcpSock::writes()
 float MeteoTcpSock::compare(float _in, float _prev)
 {
     if (!first_run ){
-        if (std::abs(_prev - _in) < std::abs(_prev*0.15f)) //new value don't exceed of 15% per sample
+        if (std::abs(_prev - _in) < std::abs(_prev*0.5f)) //new value don't exceed of 15% per sample
         {
             return _in;
         } else {
@@ -665,6 +665,5 @@ float MeteoTcpSock::compare(float _in, float _prev)
 
         return  _in;
     }
-
 }
 #endif
