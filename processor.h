@@ -38,6 +38,7 @@
 #include "grimm.h"
 #include "liga.h"
 #include "topasip.h"
+#include "gammaet.h"
 
 class processor : public QObject
 {
@@ -170,6 +171,10 @@ private:
     QString m_topas_ip;
     quint16 m_topas_port;
 
+    GammaET *m_gammaet = nullptr;
+    QString m_gammaet_ip;
+    quint16 m_gammaet_port;
+    QMap<int, int> *m_gammapool; //assosiative array of polling slave address - number of registers GammaET dev.
 
 private:
     void squeezeAlarmMsg();

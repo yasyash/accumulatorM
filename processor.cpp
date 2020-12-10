@@ -94,6 +94,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         }
     }
 
+    // GammaET init
+    if (cmdline_args.indexOf("-gammaetip")>-1)
+        m_gammaet_ip = cmdline_args.value(cmdline_args.indexOf("-gammaetip") +1);
+
+    if (m_gammaet_ip == "")
+    {
+        qDebug ( "IP address of GammaET is not set.\n\r");
+    }
+    else
+    {
+
+        m_gammaet_port = cmdline_args.value(cmdline_args.indexOf("-gammaetport") +1).toUShort();
+        if (m_gammaet_port <= 0)
+        {
+            qDebug ("GammaET port error:  expected parameter\n\r");
+        }
+        else
+        {
+            m_gammaet = new GammaET(this, &m_gammaet_ip, &m_gammaet_port);
+
+            connect(m_gammaet, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*))); //fill several data to one sensor's base
+        }
+
+
+    }
+
 
     // modbusip init
     if (cmdline_args.indexOf("-moxaip")>-1)
@@ -238,55 +264,11 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
     m_transactTimer = new QTimer(this);
     connect( m_transactTimer, SIGNAL(timeout()), this, SLOT(transactionDB()));
-    // m_transactTimer->start(600000);
-
-    //m_mutex = new QMutex();
-    //int _pos = cmdline_args.indexOf("-slaveid");
-    QStringListIterator iterator(cmdline_args);
-    //mm_pool = new QList<int>;
-    m_pool = new QMap<int, int>;
-
-    while (iterator.hasNext())
-    {
-        if (iterator.next() == "-slaveid")
-        {
-            QString tmp = iterator.next().toLocal8Bit().constData();
-            while (tmp.indexOf("-") == -1) {
-
-                //m_pool->push_back(tmp.toInt());
-                m_pool->insert(tmp.toInt(), numCoils);
-
-                tmp = iterator.next().toLocal8Bit().constData();
-            }
-            // return;
-        }
-    }
-
-    if (m_pool->size() == 0)
-    {
-        for ( int i = 0; i < 16; i++)
-        {
-            //m_pool->push_back(i);
-            m_pool->insert(i, numCoils);
-
-        }
-    }
 
 
-
-    slaveID = new QVector<bool>(30, true); //max slaveID number is hardcoded to 30 devices
-    q_poll = new uint8_t[29];
-    memset(q_poll, 24, 30);
     m_uuid = new  QMap<QString, QUuid>;
     m_data = new  QMap<QString, int>;
     m_measure =  new QMap<QString, int>;
-
-    //this->ms_data = new  QMap<QString, int>;
-    //this->ms_measure =  new QMap<QString, int>;
-
-
-
-    //emit(AsciiPortActive(true));
 
     //alarm init
     m_alarmip = cmdline_args.value(cmdline_args.indexOf("-alarmip") +1);
@@ -587,7 +569,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
 
 
-    //Grimm listening confiramtion
+    //Grimm listening confiramtion & range
     if (m_grimm){
         ms_range->insert("PM", 1000000);
         ms_range->insert("PM1", 1000000);
@@ -596,6 +578,78 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         ms_range->insert("PM10", 1000000);
         m_grimm->send_go();
     }
+
+    //GammaET elements
+    m_range->insert("CH", 1000);
+    m_range->insert("HCH", 1000);
+    m_range->insert("CH4", 1000);
+
+    //Insert Modbus slave id group
+    QStringListIterator iterator(cmdline_args);
+
+    if (m_modbusip || m_modbus)
+    {
+        m_pool = new QMap<int, int>;
+
+        while (iterator.hasNext())
+        {
+            if (iterator.next() == "-slaveid") // read slave id for Modbus
+            {
+                QString tmp = iterator.next().toLocal8Bit().constData();
+                while (tmp.indexOf("-") == -1) {
+
+                    //m_pool->push_back(tmp.toInt());
+                    m_pool->insert(tmp.toInt(), numCoils);
+
+                    tmp = iterator.next().toLocal8Bit().constData();
+                }
+                // return;
+            }
+
+            if (m_pool->size() == 0)
+            {
+                for ( int i = 0; i < 16; i++)
+                {
+                    m_pool->insert(i, numCoils);
+
+                }
+            }
+
+            slaveID = new QVector<bool>(30, true); //max slaveID number is hardcoded to 30 devices
+
+            q_poll = new uint8_t[29];
+            memset(q_poll, 24, 30);
+
+        }
+    }
+
+    if (m_gammaet){
+        m_gammapool = new QMap<int, int>;
+        while (iterator.hasNext())
+        {
+            if (iterator.next() == "-slavegammaetid") // read slave id for GammaET devices Modbus
+                // insert hardcoded  <numCoils> addresses for GammaET if is empty cmd. string parameter
+
+            {
+                QString tmp = iterator.next().toLocal8Bit().constData();
+                while (tmp.indexOf("-") == -1) {
+
+                    m_gammapool->insert(tmp.toInt(), numCoils);
+
+                    tmp = iterator.next().toLocal8Bit().constData();
+                }
+            }
+        }
+    }
+    if (m_gammapool->size() == 0) // insert 5 slave id and hardcoded  <numCoils> addresses for GammaET if is empty cmd. string parameter
+    {
+        for ( int i = 0; i < 5; i++)
+        {
+            m_gammapool->insert(i, numCoils);
+
+        }
+    }
+
 
 }
 
@@ -1215,17 +1269,18 @@ void processor::setStatusError(const QString &msg)
 }
 
 void processor::renovateSlaveID( void )
-{
-    memset(q_poll, 24, 30);
-    for( int j = 0; j < slaveID->size(); ++j )
+{if (m_modbusip || m_modbus)
     {
-        if (!slaveID->value(j))
+        memset(q_poll, 24, 30);
+        for( int j = 0; j < slaveID->size(); ++j )
         {
-            slaveID->replace(j, true);
-            m_pool->insert (j+1, numCoils); //renovate of registers quantity
+            if (!slaveID->value(j))
+            {
+                slaveID->replace(j, true);
+                m_pool->insert (j+1, numCoils); //renovate of registers quantity
+            }
         }
     }
-
     if (m_modbusip)
     {
         if (!m_modbusip->connected){
@@ -1236,6 +1291,18 @@ void processor::renovateSlaveID( void )
 
         }
     }
+
+    if (m_gammaet)
+    {
+        if (!m_gammaet->connected){
+
+            m_gammaet->~GammaET();
+            m_gammaet = new GammaET(this, &m_gammaet_ip, &m_gammaet_port);
+            connect(m_gammaet, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*))); //fill several data to one sensor's base
+
+        }
+    }
+
 
     if (m_dust) {
         //if (!m_dust->connected){
@@ -1339,7 +1406,21 @@ void processor::renovateSlaveID( void )
 
     //  }
     //}
+    if (m_topasip)
+    {
+        if (!m_topasip->connected)
+        {
+            m_topasip->~TopasIP();
 
+
+            QString _serialnum = m_topasip->serialnum;
+            m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &_serialnum);
+            if (m_topasip){
+                connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+
+            }
+        }
+    }
 }
 void processor::squeezeAlarmMsg()
 {
@@ -1725,7 +1806,10 @@ void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
     QSqlRecord rec = query->record();
 
     m_transactTimer->start(rec.field("average_period").value().toInt() *1000);
-    if( !m_pollTimer->isActive() ) m_transactTimer->stop();
+    if( !m_pollTimer->isActive() )
+    {
+        m_transactTimer->stop();
+    }
 
     m_uuidStation  = new QUuid(rec.field("idd").value().toUuid());
 
@@ -1763,8 +1847,18 @@ void processor::readSocketStatus()
     if (m_modbusip){
         for (slave = m_pool->begin(); slave != m_pool->end(); ++slave)
         {
-            tmp_type_measure.clear();
+            //tmp_type_measure.clear();
             m_modbusip->sendData(slave.key(), slave.value());
+
+        }
+    }
+
+    // GammaET MODBUS ip
+    if (m_gammaet){
+        for (slave = m_gammapool->begin(); slave != m_gammapool->end(); ++slave)
+        {
+            //tmp_type_measure.clear();
+            m_gammaet->sendData(slave.key(), slave.value());
 
         }
     }

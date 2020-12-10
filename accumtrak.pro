@@ -3,7 +3,7 @@ QT += core sql network concurrent serialport
 QT -= gui
 
 TEMPLATE = app
-VERSION = 1.9
+VERSION = 2.1
 
 TARGET = accumtrak
 
@@ -37,7 +37,8 @@ SOURCES += \
         stdsoap2.cpp\
         qtelnet.cpp \
         modbusip.cpp \
-        topasip.cpp
+        topasip.cpp \
+    gammaet.cpp
 
 
 
@@ -63,7 +64,8 @@ HEADERS +=\
     wsa5.h\
     qtelnet.h \
     modbusip.h \
-    topasip.h
+    topasip.h \
+    gammaet.h
 
 
 
