@@ -640,7 +640,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 }
             }
         }
-    }
+
     if (m_gammapool->size() == 0) // insert 5 slave id and hardcoded  <numCoils> addresses for GammaET if is empty cmd. string parameter
     {
         for ( int i = 0; i < 5; i++)
@@ -649,7 +649,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
         }
     }
-
+}
 
 }
 
