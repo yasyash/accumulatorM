@@ -605,7 +605,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 }
                 // return;
             }
-
+        }
+        if (m_modbusip || m_modbus){
             if (m_pool->size() == 0)
             {
                 for ( int i = 0; i < 16; i++)
@@ -614,14 +615,14 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
                 }
             }
-
-            slaveID = new QVector<bool>(30, true); //max slaveID number is hardcoded to 30 devices
-
-            q_poll = new uint8_t[29];
-            memset(q_poll, 24, 30);
-
         }
+        slaveID = new QVector<bool>(30, true); //max slaveID number is hardcoded to 30 devices
+
+        q_poll = new uint8_t[29];
+        memset(q_poll, 24, 30);
+
     }
+
 
     if (m_gammaet){
         m_gammapool = new QMap<int, int>;
@@ -640,16 +641,18 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 }
             }
         }
+    }
+    if (m_gammaet){
 
-    if (m_gammapool->size() == 0) // insert 5 slave id and hardcoded  <numCoils> addresses for GammaET if is empty cmd. string parameter
-    {
-        for ( int i = 0; i < 5; i++)
+        if (m_gammapool->size() == 0) // insert 5 slave id and hardcoded  <numCoils> addresses for GammaET if is empty cmd. string parameter
         {
-            m_gammapool->insert(i, numCoils);
+            for ( int i = 0; i < 5; i++)
+            {
+                m_gammapool->insert(i, numCoils);
 
+            }
         }
     }
-}
 
 }
 

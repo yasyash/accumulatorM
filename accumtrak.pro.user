@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.8.0, 2020-12-11T03:42:42. -->
+<!-- Written by QtCreator 4.8.0, 2020-12-12T13:41:01. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -297,7 +297,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">accumtrak2</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/inote/accumulatorM/accumtrak.pro</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">accumtrak.pro</value>
-    <value type="QString" key="RunConfiguration.Arguments">-gammaetip 192.168.1.30 -gammaetport 4002 -slavegammaetid 1  -db weather -user weather -pwd 31415   -polltime 12   -verbose</value>
+    <value type="QString" key="RunConfiguration.Arguments">-moxaip 192.168.1.30 -moxaport485 4001 -slaveid 1 3 -gammaetip 192.168.1.30 -gammaetport 4002 -slavegammaetid 1  -db weather -user weather -pwd 31415   -polltime 12   -verbose</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
