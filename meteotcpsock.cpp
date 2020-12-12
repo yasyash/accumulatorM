@@ -409,7 +409,7 @@ void MeteoTcpSock::readData()
 
                 measure->insert("hum_in", measure->value("hum_in") + _result);
             }
-            if ((uchar(data[14])==0xff))
+            if ((uchar(data[14])> 0x04))
             {
                 int _raw =~((int)(255 - uchar(data[13]) ))+1;
                 _result = ((float)(_raw)/10-32)*5/9;
