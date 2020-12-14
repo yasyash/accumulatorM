@@ -159,6 +159,14 @@ private:
     QString m_serinus_ip50;
     quint16 m_serinus_port50;
 
+    Serinus *m_serinus44 = nullptr; //member for Serinus44
+    QString m_serinus_ip44;
+    quint16 m_serinus_port44;
+
+    Serinus *m_serinus30 = nullptr; //member for Serinus50
+    QString m_serinus_ip30;
+    quint16 m_serinus_port30;
+
     Grimm *m_grimm = nullptr; //member for Grimm
     QString m_grimm_ip;
     quint16 m_grimmport;

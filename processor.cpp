@@ -463,6 +463,50 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 m_serinus50->verbose = true;
         }
     }
+
+    m_serinus_ip30 = cmdline_args.value(cmdline_args.indexOf("-serinusip30") +1);
+    if (m_serinus_ip30 == "")
+    {
+        qDebug ( "IP address of the Serinus30 is not set.\n\r");
+    }
+    else
+    {
+        m_serinus_port30 = cmdline_args.value(cmdline_args.indexOf("-serinusport30") +1).toUShort();
+        if (m_serinus_port50 <= 0)
+        {
+            qDebug ( "Port of the Serinus30 is not set.\n\r");
+        }
+        else
+        {
+            m_serinus30 = new Serinus(this, &m_serinus_ip30, &m_serinus_port30, int(30));
+            connect(m_serinus30, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+            //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
+            if (verbose)
+                m_serinus30->verbose = true;
+        }
+    }
+
+    m_serinus_ip44 = cmdline_args.value(cmdline_args.indexOf("-serinusip44") +1);
+    if (m_serinus_ip44 == "")
+    {
+        qDebug ( "IP address of the Serinus44 is not set.\n\r");
+    }
+    else
+    {
+        m_serinus_port44 = cmdline_args.value(cmdline_args.indexOf("-serinusport44") +1).toUShort();
+        if (m_serinus_port50 <= 0)
+        {
+            qDebug ( "Port of the Serinus44 is not set.\n\r");
+        }
+        else
+        {
+            m_serinus44 = new Serinus(this, &m_serinus_ip44, &m_serinus_port44, int(44));
+            connect(m_serinus44, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+            //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
+            if (verbose)
+                m_serinus44->verbose = true;
+        }
+    }
     // ACA-Liga init
     //  -ligaip 192.168.1.111 -ligaport 7120
 
@@ -482,7 +526,6 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         {
             m_liga = new Liga( &m_liga_ip, &m_liga_port);
             //   connect(m_liga, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
-            //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
 
         }
     }
@@ -1395,6 +1438,34 @@ void processor::renovateSlaveID( void )
             }
         }
     }
+
+
+    if (m_serinus30){
+        if (!m_serinus30->connected)
+        {
+            if ( (m_serinus_ip30 != "") && (m_serinus_port30 >0)){
+
+                m_serinus30->~Serinus();
+                m_serinus30 = new Serinus(this, &m_serinus_ip30, &m_serinus_port30, int(30));
+                connect(m_serinus30, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+
+            }
+        }
+    }
+
+    if (m_serinus44){
+        if (!m_serinus44->connected)
+        {
+            if ( (m_serinus_ip44 != "") && (m_serinus_port44 >0)){
+
+                m_serinus44->~Serinus();
+                m_serinus44 = new Serinus(this, &m_serinus_ip44, &m_serinus_port44, int(44));
+                connect(m_serinus44, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+
+            }
+        }
+    }
+
     // if (!m_grimm->connected)
     // {
     if (m_grimm)
@@ -1995,6 +2066,38 @@ void processor::readSocketStatus()
 
         }
     }
+
+
+    if (m_serinus30) {
+        if (m_serinus30->connected)
+        {   QByteArray ba;
+            ba.resize(2);
+            ba[0] = 50; //primary gas response
+            ba[1] = 51; //secondary gas response
+            m_serinus30->sendData(1, &ba);
+            if(verbose)
+
+                qDebug()<< "\n\rSerinus30 command: " << ba <<"\n\r" ;
+
+
+        }
+    }
+
+    if (m_serinus44) {
+        if (m_serinus44->connected)
+        {   QByteArray ba;
+            ba.resize(2);
+            ba[0] = 50; //primary gas response
+            ba[1] = 51; //secondary gas response
+            m_serinus44->sendData(1, &ba);
+            if(verbose)
+
+                qDebug()<< "\n\rSerinus44 command: " << ba <<"\n\r" ;
+
+
+        }
+    }
+
 
     if (m_topasip)
     {
