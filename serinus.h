@@ -33,7 +33,7 @@ public:
     Serinus(QObject *parent, QString *ip, quint16 *port, int type);
 
     virtual ~Serinus();
-
+    void readGases (int qw);
     void sendData(int command, QByteArray *data);
 
 signals:

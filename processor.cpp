@@ -472,7 +472,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     else
     {
         m_serinus_port30 = cmdline_args.value(cmdline_args.indexOf("-serinusport30") +1).toUShort();
-        if (m_serinus_port50 <= 0)
+        if (m_serinus_port30 <= 0)
         {
             qDebug ( "Port of the Serinus30 is not set.\n\r");
         }
@@ -494,7 +494,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     else
     {
         m_serinus_port44 = cmdline_args.value(cmdline_args.indexOf("-serinusport44") +1).toUShort();
-        if (m_serinus_port50 <= 0)
+        if (m_serinus_port44 <= 0)
         {
             qDebug ( "Port of the Serinus44 is not set.\n\r");
         }
@@ -2024,14 +2024,10 @@ void processor::readSocketStatus()
     // Read Serinus status
     if (m_serinus) {
         if (m_serinus->connected)
-        {   QByteArray ba;
-            ba.resize(2);
-            ba[0] = 50; //primary gas response
-            ba[1] = 51; //secondary gas response
-            m_serinus->sendData(1, &ba);
+        {   m_serinus->readGases(2);
             if(verbose)
 
-                qDebug()<< "\n\rSerinus command: " << ba <<"\n\r" ;
+                qDebug()<< "\n\rSerinus 51 read command sent\n\r";
 
 
         }
@@ -2039,14 +2035,10 @@ void processor::readSocketStatus()
 
     if (m_serinus50) {
         if (m_serinus50->connected)
-        {   QByteArray ba;
-            ba.resize(2);
-            ba[0] = 50; //primary gas response
-            ba[1] = 51; //secondary gas response
-            m_serinus50->sendData(1, &ba);
+        {   m_serinus50->readGases(1);
             if(verbose)
 
-                qDebug()<< "\n\rSerinus50 command: " << ba <<"\n\r" ;
+                qDebug()<< "\n\rSerinus 50 read command sent\n\r" ;
 
 
         }
@@ -2054,30 +2046,23 @@ void processor::readSocketStatus()
 
     if (m_serinus55) {
         if (m_serinus55->connected)
-        {   QByteArray ba;
-            ba.resize(2);
-            ba[0] = 50; //primary gas response
-            ba[1] = 51; //secondary gas response
-            m_serinus55->sendData(1, &ba);
+        {
+            m_serinus55->readGases(1);
             if(verbose)
 
-                qDebug()<< "\n\rSerinus55 command: " << ba <<"\n\r" ;
+                qDebug()<< "\n\rSerinus 55 read command sent\n\r" ;
 
 
         }
     }
 
-
     if (m_serinus30) {
         if (m_serinus30->connected)
-        {   QByteArray ba;
-            ba.resize(2);
-            ba[0] = 50; //primary gas response
-            ba[1] = 51; //secondary gas response
-            m_serinus30->sendData(1, &ba);
+        {
+            m_serinus30->readGases(1);
             if(verbose)
 
-                qDebug()<< "\n\rSerinus30 command: " << ba <<"\n\r" ;
+                qDebug()<< "\n\rSerinus 30 read command sent\n\r" ;
 
 
         }
@@ -2085,14 +2070,12 @@ void processor::readSocketStatus()
 
     if (m_serinus44) {
         if (m_serinus44->connected)
-        {   QByteArray ba;
-            ba.resize(2);
-            ba[0] = 50; //primary gas response
-            ba[1] = 51; //secondary gas response
-            m_serinus44->sendData(1, &ba);
+        {
+            m_serinus44->readGases(4);
+
             if(verbose)
 
-                qDebug()<< "\n\rSerinus44 command: " << ba <<"\n\r" ;
+                qDebug()<< "\n\rSerinus 44  read command sent\n\r" ;
 
 
         }

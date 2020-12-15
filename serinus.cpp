@@ -84,12 +84,47 @@ Serinus::Serinus(QObject *parent , QString *ip, quint16 *port, int type) : QObje
     measure = new  QMap<QString, float>;
     sample_t = new QMap<QString, int>;
 
-    measure->insert("SO2", 0);
-    measure->insert("H2S", 0);
+    switch (m_type) {
+    case 51:
 
-    sample_t->insert("SO2", 0 );
-    sample_t->insert("H2S", 0 );
+        measure ->insert("SO2", 0);
+        measure->insert("H2S", 0);
+        sample_t->insert("SO2", 0);
+        sample_t->insert("H2S", 0);
 
+        break;
+
+    case 50:
+        measure ->insert("SO2", 0);
+        sample_t->insert("SO2", 0);
+
+        break;
+    case 55:
+        measure->insert("H2S", 0);
+        sample_t->insert("H2S", 0);
+
+        break;
+    case 44:
+
+        measure ->insert("NO", 0);
+        measure->insert("NO2", 0);
+        measure ->insert("NOx", 0);
+        measure->insert("NH3", 0);
+        sample_t->insert("NO", 0);
+        sample_t->insert("NO2", 0);
+        sample_t->insert("NOx", 0);
+        sample_t->insert("NH3", 0);
+        break;
+
+    case 30:
+
+        measure ->insert("CO", 0);
+        sample_t->insert("CO", 0);
+
+        break;
+    default:
+        break;
+    }
     is_read = false;
     status = "";
     connected = m_sock->state();
@@ -136,7 +171,7 @@ void Serinus::readData()
 
     QByteArray _data = m_sock->readAll();
     //if (verbose)
-     //   qDebug() << "Serinus buffer --- data: " << _data << " lenght - " << _data.length() << " \n\r";
+    qDebug() << "Serinus buffer --- data: " << _data << " lenght - " << _data.length() << " \n\r";
 
     if (is_read)
     {switch (m_type) {
@@ -159,7 +194,24 @@ void Serinus::readData()
             sample_t->insert("H2S", 0);
 
             break;
+        case 44:
 
+            measure ->insert("NO", 0);
+            measure->insert("NO2", 0);
+            measure ->insert("NOx", 0);
+            measure->insert("NH3", 0);
+            sample_t->insert("NO", 0);
+            sample_t->insert("NO2", 0);
+            sample_t->insert("NOx", 0);
+            sample_t->insert("NH3", 0);
+            break;
+
+        case 30:
+
+            measure ->insert("CO", 0);
+            sample_t->insert("CO", 0);
+
+            break;
         default:
             break;
 
@@ -174,14 +226,21 @@ void Serinus::readData()
     uint32_t ieee;
     int i, j;
     float result;
+    int total_regs = 2;
 
     data.append( _data); //copy to main buffer
 
     if (data.length() > 16)  //data buffer detection on fullness
     {
-        if (( int(data[2]) == 1 ) && (int(data[4]) == 10)) //detect right response for pri. and sec. gas request
+        if ((( int(data[2]) == 1 ) && (int(data[4]) == 10)) || (( int(data[2]) == 1 ) && (int(data[4]) == 15)) ) //detect right response for pri. and sec. gas request
         {
-            for (j = 0; j < 2; j++) {
+            if (( int(data[2]) == 1 ) && (int(data[4]) == 10))
+                total_regs =2;
+
+            if (( int(data[2]) == 1 ) && (int(data[4]) == 15))
+                total_regs = 3;
+
+            for (j = 0; j < total_regs; j++) {
 
 
 
@@ -219,7 +278,7 @@ void Serinus::readData()
                         }
                     }
 
-                    if (int(data[5*j + 5]) == 51){
+                    if (int(data[5*j + 5]) == 53){
                         if (result >= 0) {//negative value detection
                             sample_t->insert("H2S", sample_t->value("H2S") + 1);
                             measure->insert("H2S", measure->value("H2S") + result);
@@ -257,10 +316,75 @@ void Serinus::readData()
                             sample_t->insert("H2S", sample_t->value("H2S") + 1);
                             measure->insert("H2S", measure->value("H2S") + 0.000000000f);
                         }}
-                    //  if (int(data[5*j + 5]) == 51){
-                    //qDebug() << "Second gas = " << result ;
-                    //  }
 
+
+                    break;
+
+                case 30:
+                    if (int(data[5*j + 5]) == 50){
+                        if (result >= 0) { //negative value detection
+                            sample_t->insert("CO", sample_t->value("CO") + 1);
+                            measure->insert("CO",  measure->value("CO") + result);
+                        }
+                        else
+                        {
+                            sample_t->insert("CO", sample_t->value("CO") + 1);
+                            measure->insert("CO",  measure->value("CO") + 0.00000000f);
+                        }}
+
+                    break;
+
+                case 44:
+
+                    if (uint(data[5*j + 5]) == 50){
+                        if (result >= 0) { //negative value detection
+                            sample_t->insert("NO", sample_t->value("NO") + 1);
+                            measure->insert("NO",  measure->value("NO") + result);
+                        }
+                        else
+                        {
+                            sample_t->insert("NO", sample_t->value("NO") + 1);
+                            measure->insert("NO",  measure->value("NO") + 0.00000000f);
+                        }
+                    }
+
+                    if (uint(data[5*j + 5]) == 51){
+                        if (result >= 0) {//negative value detection
+                            sample_t->insert("NOx", sample_t->value("NOx") + 1);
+                            measure->insert("NOx", measure->value("NOx") + result);
+                        }
+                        else
+                        {
+                            sample_t->insert("NOx", sample_t->value("NOx") + 1);
+                            measure->insert("NOx", measure->value("NOx") + 0.00000000f);
+                        }
+                    }
+
+                    if (uint(data[5*j + 5]) == 52){
+                        if (result >= 0) {//negative value detection
+                            sample_t->insert("NO2", sample_t->value("NO2") + 1);
+                            measure->insert("NO2", measure->value("NO2") + result);
+                        }
+                        else
+                        {
+                            sample_t->insert("NO2", sample_t->value("NO2") + 1);
+                            measure->insert("NO2", measure->value("NO2") + 0.00000000f);
+                        }
+                    }
+
+                    break;
+
+                    if (uint(data[5*j + 5]) == 183){
+                        if (result >= 0) {//negative value detection
+                            sample_t->insert("NO2", sample_t->value("NH3") + 1);
+                            measure->insert("NO2", measure->value("NH3") + result);
+                        }
+                        else
+                        {
+                            sample_t->insert("NO2", sample_t->value("NH3") + 1);
+                            measure->insert("NO2", measure->value("NH3") + 0.00000000f);
+                        }
+                    }
 
                     break;
 
@@ -314,12 +438,60 @@ void Serinus::displayError(QAbstractSocket::SocketError socketError)
 
 }
 
+void Serinus::readGases(int qw)
+{
+    if (qw <3)
+    {
+    QByteArray ba;
+    ba.resize(2);
+    ba[0] = 50; //primary gas response
+    ba[1] = 51; //secondary gas response
+    sendData(1, &ba);
+    }
+    else {
+        QByteArray ba;
+        ba.resize(qw);
+        ba[0] = 50; //primary gas response
+        ba[1] = 51; //secondary gas response
+        ba[2] = 52; //third gas response
+        ba[3] = char(0xb7); //forth gas response
+
+        sendData(1, &ba);
+    }
+
+}
+
 void Serinus::sendData(int command, QByteArray *data)
 {
     int checksum =  0; //id = 0
-    checksum = checksum ^ command ^ data->length() ^ data->at(0) ^ data->at(1);
+    QString _msg="";
 
-    QString _msg = QString(0x02) + QLatin1Char(0) + QLatin1Char(command) + QLatin1Char(0x03) + QString(data->length()) + QString(data->at(0)) + QString(data->at(1)) + QString(checksum) + QLatin1Char(0x04);
+    if (data->length() == 2){
+        checksum = checksum ^ command ^ data->length() ^ data->at(0) ^ data->at(1);
+    } else
+    {
+        checksum = checksum ^ command ^ data->length();
+        for (int i =0; i < data->length(); i++)
+        {
+            checksum = checksum ^ (data->at(i) & 0xFF);
+        }
+       // checksum = checksum  ^ data->at(0) ^ data->at(1) ^ 0xb7;
+
+    }
+    if (data->length() == 2){
+        _msg = QString(0x02) + QLatin1Char(0) + QLatin1Char(command) + QLatin1Char(0x03) + QString(data->length()) + QString(data->at(0)) + QString(data->at(1)) + QString(checksum) + QLatin1Char(0x04);
+    } else
+    {
+          _msg = QString(0x02) + QLatin1Char(0) + QLatin1Char(command) + QLatin1Char(0x03) + QString(data->length());
+        for (int i =0; i < data->length(); i++)
+        {
+            _msg = _msg + QString(data->at(i) & 0xFF);
+
+        }
+        _msg = _msg + QString(checksum) + QLatin1Char(0x04);
+
+        //_msg = QString(0x02) + QLatin1Char(0) + QLatin1Char(command) + QLatin1Char(0x03) + QString(data->length()) + QString(data->at(0)) + QString(data->at(1))+ QLatin1Char(0xb7)+ QString(checksum) + QLatin1Char(0x04);
+    }
     //strcat(str,  QLatin1Char(51));
     //strcat(str,  "\r");
     qint64 lnt = _msg.size();//qint64(strlen(str));
