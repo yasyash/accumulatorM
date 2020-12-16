@@ -567,6 +567,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     m_range->insert("CH2O", 1000);
     m_range->insert("O3", 1000);
     m_range->insert("NH3", 1000);
+    m_range->insert("NOx", 1000);
 
 
     m_range->insert("бензол", 1000);
