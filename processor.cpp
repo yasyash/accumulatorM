@@ -401,14 +401,14 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     m_serinus_ip = cmdline_args.value(cmdline_args.indexOf("-serinusip") +1);
     if (m_serinus_ip == "")
     {
-        qDebug ( "IP address of the Serinus is not set.\n\r");
+        qDebug ( "IP address of the Serinus 51 is not set.\n\r");
     }
     else
     {
         m_serinus_port = cmdline_args.value(cmdline_args.indexOf("-serinusport") +1).toUShort();
         if (m_serinus_port <= 0)
         {
-            qDebug ( "Port of the Serinus is not set.\n\r");
+            qDebug ( "Port of the Serinus 51 is not set.\n\r");
         }
         else
         {

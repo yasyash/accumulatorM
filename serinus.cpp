@@ -55,7 +55,7 @@ Serinus::Serinus(QObject *parent , QString *ip, quint16 *port) : QObject (parent
     status = "";
     connected = m_sock->state();
 
-    qDebug() << "Serinus measure equipment handling has been initialized.\n\r";
+    qDebug() << "Serinus 51 measure equipment handling has been initialized.\n\r";
 
 }
 
@@ -171,7 +171,7 @@ void Serinus::readData()
 
     QByteArray _data = m_sock->readAll();
     //if (verbose)
-    qDebug() << "Serinus buffer --- data: " << _data << " lenght - " << _data.length() << " \n\r";
+    //qDebug() << "Serinus" << m_type << " buffer --- data: " << _data << " lenght - " << _data.length() << " \n\r";
 
     if (is_read)
     {switch (m_type) {
@@ -232,7 +232,7 @@ void Serinus::readData()
 
     if (data.length() > 16)  //data buffer detection on fullness
     {
-        if ((( int(data[2]) == 1 ) && (int(data[4]) == 10)) || (( int(data[2]) == 1 ) && (int(data[4]) == 15)) ) //detect right response for pri. and sec. gas request
+        if ((( int(data[2]) == 1 ) && (int(data[4]) == 10)) || (( int(data[2]) == 1 ) && (int(data[4]) == 15)) || (( int(data[2]) == 1 ) && (int(data[4]) == 20))) //detect right response for pri. and sec. gas request
         {
             if (( int(data[2]) == 1 ) && (int(data[4]) == 10))
                 total_regs =2;
@@ -240,6 +240,8 @@ void Serinus::readData()
             if (( int(data[2]) == 1 ) && (int(data[4]) == 15))
                 total_regs = 3;
 
+            if (( int(data[2]) == 1 ) && (int(data[4]) == 20))
+                total_regs = 4;
             for (j = 0; j < total_regs; j++) {
 
 
@@ -278,7 +280,7 @@ void Serinus::readData()
                         }
                     }
 
-                    if (int(data[5*j + 5]) == 53){
+                    if (int(data[5*j + 5]) == 51){
                         if (result >= 0) {//negative value detection
                             sample_t->insert("H2S", sample_t->value("H2S") + 1);
                             measure->insert("H2S", measure->value("H2S") + result);
@@ -372,17 +374,16 @@ void Serinus::readData()
                         }
                     }
 
-                    break;
 
-                    if (uint(data[5*j + 5]) == 183){
+                    if (int(data[5*j + 5]) == -73){
                         if (result >= 0) {//negative value detection
-                            sample_t->insert("NO2", sample_t->value("NH3") + 1);
-                            measure->insert("NO2", measure->value("NH3") + result);
+                            sample_t->insert("NH3", sample_t->value("NH3") + 1);
+                            measure->insert("NH3", measure->value("NH3") + result);
                         }
                         else
                         {
-                            sample_t->insert("NO2", sample_t->value("NH3") + 1);
-                            measure->insert("NO2", measure->value("NH3") + 0.00000000f);
+                            sample_t->insert("NH3", sample_t->value("NH3") + 1);
+                            measure->insert("NH3", measure->value("NH3") + 0.00000000f);
                         }
                     }
 
@@ -419,8 +420,9 @@ void Serinus::displayError(QAbstractSocket::SocketError socketError)
     case QAbstractSocket::RemoteHostClosedError:
         break;
     case QAbstractSocket::HostNotFoundError:
-        qDebug()<<   ("Serinus measure equipment handling error: The host was not found. Please check the "
-                      "host name and port settings.\n\r");
+
+        qDebug()<<   "Serinus " << QString(m_type) << " measure equipment handling error: The host was not found. Please check the "
+                      "host name and port settings.\n\r";
         break;
     case QAbstractSocket::ConnectionRefusedError:
         qDebug()<< ("Serinus measure equipment handling error: The connection was refused by the peer. "
