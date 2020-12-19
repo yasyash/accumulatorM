@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.8.0, 2020-12-16T11:51:49. -->
+<!-- Written by QtCreator 4.8.0, 2020-12-19T17:07:37. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -297,7 +297,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">accumtrak2</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/inote/accumulatorM/accumtrak.pro</value>
     <value type="QString" key="Qt4ProjectManager.Qt4RunConfiguration.ProFile">accumtrak.pro</value>
-    <value type="QString" key="RunConfiguration.Arguments">-meteoip 192.168.1.30  -meteoport 4001 -meteomodel lufft -slaveid 1  -db weather -user weather -pwd 31415  -serinusip44 192.168.1.109 -serinusport44 32783 -serinusip30 192.168.1.108 -serinusport30 32783 -serinusip 192.168.1.111 -serinusport 32783    -polltime 12   -verbose</value>
+    <value type="QString" key="RunConfiguration.Arguments">-topasip 192.168.1.15  -topasport 4001 -topasnum T1861 -gammaetip 192.168.1.30 -gammaetport 4002 -slavegammaetid 1 -meteoip 192.168.1.30  -meteoport 4001 -meteomodel lufft -slaveid 1  -db weather -user weather -pwd 31415  -serinusip44 192.168.1.109 -serinusport44 32783 -serinusip30 192.168.1.108 -serinusport30 32783 -serinusip 192.168.1.111 -serinusport 32783    -polltime 12   -verbose</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>

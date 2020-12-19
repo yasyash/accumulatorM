@@ -237,7 +237,7 @@ void MeteoTcpSock::readData()
     {
         //for the model
         //QString _tmp = QString::fromStdString(data.toStdString());
-        list = QString::fromStdString(data.toStdString()).split(';').filter("+");
+        list = QString::fromStdString(data.toStdString()).split(';');
 
         //QStringList _list_smcln = list.filter("+");
 
