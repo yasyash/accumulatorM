@@ -449,12 +449,12 @@ void MeteoTcpSock::readData()
 
             if ((uchar(data[15]) == 0x7f && first_run) || (uchar(data[15]) == 0xff && first_run))
             {
-                measure_prev->insert("speed_wind",5.0f);
+                measure_prev->insert("speed_wind",0.1f);
 
                 measure->insert("speed_wind", measure->value("speed_wind") + 5.0f);
             } else
             {
-                _result = compare (_result, measure_prev->value("speed_wind"));
+                //_result = compare (_result, measure_prev->value("speed_wind"));
                 measure_prev->insert("speed_wind",_result);
 
                 measure->insert("speed_wind", measure->value("speed_wind") + _result);
@@ -485,7 +485,7 @@ void MeteoTcpSock::readData()
 
             } else
             {
-                _result = compare (_result, measure_prev->value("dew_pt"));
+               // _result = compare (_result, measure_prev->value("dew_pt"));
                 measure_prev->insert("dew_pt",_result);
 
                 measure->insert("dew_pt",  measure->value("dew_pt") + _result);
@@ -499,7 +499,7 @@ void MeteoTcpSock::readData()
                 measure->insert("hum_out", measure->value("hum_out") + 30.0f);
             } else
             {
-                _result = compare (_result, measure_prev->value("hum_out"));
+                //_result = compare (_result, measure_prev->value("hum_out"));
                 measure_prev->insert("hum_out",_result);
 
                 measure->insert("hum_out", measure->value("hum_out") + _result);
@@ -533,7 +533,7 @@ void MeteoTcpSock::readData()
             else {
 
 
-                _result = compare (_result, measure_prev->value("rain_rate"));
+                //_result = compare (_result, measure_prev->value("rain_rate"));
                 measure_prev->insert("rain_rate",_result);
                 measure->insert("rain_rate", measure->value("rain_rate") + _result);//mm per hour
             }
@@ -560,7 +560,7 @@ void MeteoTcpSock::readData()
 
             }
             else {
-                _result = compare (_result, measure_prev->value("rain"));
+                //_result = compare (_result, measure_prev->value("rain"));
                 measure_prev->insert("rain",_result);
                 measure->insert("rain", measure->value("rain") + _result); //last hour quantity in mm
             }
@@ -574,7 +574,7 @@ void MeteoTcpSock::readData()
             }
             else {
 
-                _result = compare (_result, measure_prev->value("et"));
+                //_result = compare (_result, measure_prev->value("et"));
                 measure_prev->insert("et",_result);
 
                 measure->insert("et",  measure->value("et") +_result);//inchs  TO mm Conversion Evapotranspiration Formula
