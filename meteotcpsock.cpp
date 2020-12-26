@@ -411,7 +411,7 @@ void MeteoTcpSock::readData()
             }
             if ((uchar(data[14])> 0x04))
             {
-                int _raw =~((int)(255 - uchar(data[13]) ))+1;
+                int _raw =(int(data[14]) > 0 ? 1 : -1) * (((255 - uchar (data [14]))<<8) + uchar(data[13]));
                 _result = ((float)(_raw)/10-32)*5/9;
             }
             else {
