@@ -246,7 +246,7 @@ void MeteoTcpSock::readData()
         QString _tmp;
         int _ind;
         float _result;
-        if (list.length() > 0){
+        if (list.length() > 1){
             while (_strli.hasNext())
             {
 
@@ -311,11 +311,11 @@ void MeteoTcpSock::readData()
                     measure->insert("rain", measure->value("rain") + _result);
                 }
 
+                sample_t++;
 
             }
 
 
-            sample_t++;
         }
         qDebug() << "Meteostation's data parsed \n\r" ;
 
