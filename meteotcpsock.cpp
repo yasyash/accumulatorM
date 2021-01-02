@@ -449,19 +449,25 @@ void MeteoTcpSock::readData()
 
             if ((uchar(data[15]) == 0x7f && first_run) || (uchar(data[15]) == 0xff && first_run))
             {
-                measure_prev->insert("speed_wind",0.1f);
+                measure_prev->insert("speed_wind",0.0001f);
 
-                measure->insert("speed_wind", measure->value("speed_wind") + 5.0f);
+                measure->insert("speed_wind", measure->value("speed_wind") + 0.0001f);
             } else
             {
                 //_result = compare (_result, measure_prev->value("speed_wind"));
-                measure_prev->insert("speed_wind",_result);
+                if ((_result >0) && (_result < 68.0f )){
+                    measure_prev->insert("speed_wind",_result);
 
-                measure->insert("speed_wind", measure->value("speed_wind") + _result);
+                    measure->insert("speed_wind", measure->value("speed_wind") + _result);
+                } else {
+                    measure_prev->insert("speed_wind",0.0001f);
+
+                    measure->insert("speed_wind", measure->value("speed_wind") + 0.0001f);
+                }
             }
 
             _result = (float)((uchar(data[18])<<8) + uchar(data[17]));
-            if ((_result == 0 ) || (_result >360.0f ))
+            if ((_result < 0 ) || (_result >360.0f ))
             {
                 measure_prev->insert("dir_wind",20.0f);
 
@@ -485,7 +491,7 @@ void MeteoTcpSock::readData()
 
             } else
             {
-               // _result = compare (_result, measure_prev->value("dew_pt"));
+                // _result = compare (_result, measure_prev->value("dew_pt"));
                 measure_prev->insert("dew_pt",_result);
 
                 measure->insert("dew_pt",  measure->value("dew_pt") + _result);
@@ -655,7 +661,7 @@ void MeteoTcpSock::writes()
 float MeteoTcpSock::compare(float _in, float _prev)
 {
     if (!first_run ){
-        if (std::abs(_prev - _in) < std::abs(_prev*0.5f)) //new value don't exceed of 15% per sample
+        if (std::abs(_prev - _in) < std::abs(_prev*0.15f)) //new value don't exceed of 15% per sample
         {
             return _in;
         } else {
