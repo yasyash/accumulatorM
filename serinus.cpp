@@ -254,7 +254,7 @@ void Serinus::readData()
             }
             if (start < data.length()-1){
 
-               data = data.mid(start);
+               data = data.mid(start+1);
             }
         }
 
