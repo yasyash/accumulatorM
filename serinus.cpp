@@ -245,7 +245,7 @@ void Serinus::readData()
 
                 case 0 : __status = SAMPLE_FILL;
                     break;
-                case 1 : __status = MEASURING;
+                case 63 : __status = MEASURING;
                     break;
                 case 28 : __status = ELECTRONIC_ZERO_ADJUST;
                     break;
