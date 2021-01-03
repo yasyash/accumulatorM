@@ -727,6 +727,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
     m_status->insert("Напряжение мин.", ABSENT);
     m_status->insert("Напряжение макс.", ABSENT);
+    m_status->insert("Темп. сенсор ИБП", ABSENT);
 
 
     m_status->insert("PM", ABSENT);
