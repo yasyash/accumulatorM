@@ -170,6 +170,7 @@ void Serinus::readData()
     QRegExp xRegExp("(-?\\d+(?:[\\.,]\\d+(?:e\\d+)?)?)");
 
     QByteArray _data = m_sock->readAll();
+    QByteArray _status;
     //if (verbose)
     //qDebug() << "Serinus" << m_type << " buffer --- data: " << _data << " lenght - " << _data.length() << " \n\r";
 
@@ -224,7 +225,7 @@ void Serinus::readData()
     int expo;
     uint32_t mantissa;
     uint32_t ieee;
-    int i, j;
+    int i, j, start;
     float result;
     int total_regs = 2;
 
@@ -232,6 +233,33 @@ void Serinus::readData()
 
     if (data.length() > 16)  //data buffer detection on fullness
     {
+        start = data.indexOf(0x04);
+
+        if (( int(data[2]) == 1 ) && (int(data[4]) == 5)) //if status request
+        {
+            if (int(data[5]) == 110)
+            {
+                switch (int(data[6])) {
+
+                case 0 : status = SAMPLE_FILL;
+                    break;
+                case 1 : status = MEASURING;
+                    break;
+                case 28 : status = ELECTRONIC_ZERO_ADJUST;
+                    break;
+                case 29 : status = INSTRUMENT_WARM_UP;
+                    break;
+                default: break;
+                }
+            }
+            if (start < data.length()-1){
+
+               data = data.mid(start);
+            }
+        }
+
+
+
         if ((( int(data[2]) == 1 ) && (int(data[4]) == 10)) || (( int(data[2]) == 1 ) && (int(data[4]) == 15)) || (( int(data[2]) == 1 ) && (int(data[4]) == 20))) //detect right response for pri. and sec. gas request
         {
             if (( int(data[2]) == 1 ) && (int(data[4]) == 10))
@@ -408,24 +436,7 @@ void Serinus::readData()
         }
 
 
-        if (( int(data[2]) == 1 ) && (int(data[4]) == 2)) //if status request
-        {
-            if (int(data[5]) == 110)
-            {
-                switch (int(data[5])) {
 
-                case 0 : status = SAMPLE_FILL;
-                    break;
-                case 1 : status = MEASURING;
-                    break;
-                case 28 : status = ELECTRONIC_ZERO_ADJUST;
-                    break;
-                case 29 : status = INSTRUMENT_WARM_UP;
-                    break;
-                default: break;
-                }
-            }
-        }
     }
 
 
