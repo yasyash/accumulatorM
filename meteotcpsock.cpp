@@ -365,7 +365,7 @@ void MeteoTcpSock::readData()
             }
             if ((uchar(data[11])==0xff))
             {
-                int _raw =~((int)(255 - uchar(data[10]) ))+1;
+                int _raw =(int(data[11]) > 0 ? 1 : -1) * (((255 - uchar (data [11]))<<8) + uchar(data[10]));
                 _result = ((float)(_raw)/10-32)*5/9;
             }
             else {
@@ -384,7 +384,7 @@ void MeteoTcpSock::readData()
             }
             else
             {
-                _result = compare (_result, measure_prev->value("temp_in"));
+                _result = compare (_result, measure_prev->value("temp_in"), 0.05f);
                 if (_result < 0.0f)
                     _result = measure_prev->value("temp_in");
                 if (_result > 60.0f)
