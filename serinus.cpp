@@ -251,10 +251,12 @@ void Serinus::readData()
                     break;
                 case 29 : __status = INSTRUMENT_WARM_UP;
                     break;
-                default: break;
+                default:
+                    __status = UNKNOWN;
+                    break;
                 }
                 if (verbose)
-                qDebug() <<  "Serinus"<< m_type <<" return status is " << int(data[6]);
+                    qDebug() <<  "Serinus"<< m_type <<" return status is " << int(data[6]);
             }
             if (start < data.length()-1){
 
@@ -446,6 +448,9 @@ void Serinus::readData()
             emit dataIsReady(&is_read, measure, sample_t, status);
 
         }
+
+        if (data.length() >28)//clear if wrong buffer overflow
+            data.clear();
 
 
 
