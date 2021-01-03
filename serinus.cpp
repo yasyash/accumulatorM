@@ -449,7 +449,7 @@ void Serinus::readData()
 
         }
 
-        if (data.length() >28)//clear if wrong buffer overflow
+        if (data.length() >39)//clear if wrong buffer overflow
             data.clear();
 
 
