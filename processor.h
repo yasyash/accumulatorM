@@ -83,10 +83,13 @@ public slots:
     {
         emit finished ();
     }
-    void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample); //sensor equipment type or name
+    void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QMap<QString, _status> *_status); //sensor equipment type or name
+     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample); //polymorphic method for instrument without status
     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure); //polymorphic method for slow measuring
     static void static_fillSensorData(  bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample);
-    void fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample);
+    void fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample, QMap<QString, _status> *_status);
+    void fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample);//polymorphic method for instrument without status
+
 
 private slots:
     void sendModbusRequest( void ); //update data view
