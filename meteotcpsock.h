@@ -34,6 +34,7 @@ public:
     MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, float _in, float _out, QString *_model);
     virtual ~MeteoTcpSock();
     float compare(float _in, float _prev);
+    float compare(float _in, float _prev, float coeff);
 
     void sendData(char *data);
 

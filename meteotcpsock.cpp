@@ -435,7 +435,7 @@ void MeteoTcpSock::readData()
             } else
             {
 
-                _result = compare (_result, measure_prev->value("temp_out"));
+                _result = compare (_result, measure_prev->value("temp_out"), 0.05f); //5% corellation
                 if (_result < -65.0f)
                     _result = measure_prev->value("temp_out");
 
@@ -662,6 +662,21 @@ float MeteoTcpSock::compare(float _in, float _prev)
 {
     if (!first_run ){
         if (std::abs(_prev - _in) < std::abs(_prev*0.15f)) //new value don't exceed of 15% per sample
+        {
+            return _in;
+        } else {
+            return  _prev;
+        }
+    } else {
+
+        return  _in;
+    }
+}
+
+float MeteoTcpSock::compare(float _in, float _prev, float coeff)
+{
+    if (!first_run ){
+        if (std::abs(_prev - _in) < std::abs(_prev * coeff)) //new value don't exceed of 15% per sample
         {
             return _in;
         } else {
