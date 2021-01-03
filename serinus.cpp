@@ -52,7 +52,7 @@ Serinus::Serinus(QObject *parent , QString *ip, quint16 *port) : QObject (parent
     sample_t->insert("H2S", 0 );
 
     is_read = false;
-    status = "";
+    status = UNKNOWN;
     connected = m_sock->state();
 
     qDebug() << "Serinus 51 measure equipment handling has been initialized.\n\r";
@@ -126,7 +126,7 @@ Serinus::Serinus(QObject *parent , QString *ip, quint16 *port, int type) : QObje
         break;
     }
     is_read = false;
-    status = "";
+    status = UNKNOWN;
     connected = m_sock->state();
 
     qDebug() << "Serinus" << type <<" measure equipment handling has been initialized.\n\r";
@@ -407,6 +407,25 @@ void Serinus::readData()
 
         }
 
+
+        if (( int(data[2]) == 1 ) && (int(data[4]) == 2)) //if status request
+        {
+            if (int(data[5]) == 110)
+            {
+                switch (int(data[5])) {
+
+                case 0 : status = SAMPLE_FILL;
+                    break;
+                case 1 : status = MEASURING;
+                    break;
+                case 28 : status = ELECTRONIC_ZERO_ADJUST;
+                    break;
+                case 29 : status = INSTRUMENT_WARM_UP;
+                    break;
+                default: break;
+                }
+            }
+        }
     }
 
 
@@ -422,7 +441,7 @@ void Serinus::displayError(QAbstractSocket::SocketError socketError)
     case QAbstractSocket::HostNotFoundError:
 
         qDebug()<<   "Serinus " << QString(m_type) << " measure equipment handling error: The host was not found. Please check the "
-                      "host name and port settings.\n\r";
+                                                      "host name and port settings.\n\r";
         break;
     case QAbstractSocket::ConnectionRefusedError:
         qDebug()<< ("Serinus measure equipment handling error: The connection was refused by the peer. "
@@ -444,11 +463,11 @@ void Serinus::readGases(int qw)
 {
     if (qw <3)
     {
-    QByteArray ba;
-    ba.resize(2);
-    ba[0] = 50; //primary gas response
-    ba[1] = 51; //secondary gas response
-    sendData(1, &ba);
+        QByteArray ba;
+        ba.resize(2);
+        ba[0] = 50; //primary gas response
+        ba[1] = 51; //secondary gas response
+        sendData(1, &ba);
     }
     else {
         QByteArray ba;
@@ -456,11 +475,20 @@ void Serinus::readGases(int qw)
         ba[0] = 50; //primary gas response
         ba[1] = 51; //secondary gas response
         ba[2] = 52; //third gas response
-        ba[3] = char(0xb7); //forth gas response
+        ba[3] = char(0xb7); //fourth gas response
 
         sendData(1, &ba);
     }
 
+}
+
+void Serinus::readStatus()
+{
+    QByteArray ba;
+    ba.resize(1);
+    ba[0] = 110; //state of equipment
+
+    sendData(1, &ba);
 }
 
 void Serinus::sendData(int command, QByteArray *data)
@@ -477,14 +505,14 @@ void Serinus::sendData(int command, QByteArray *data)
         {
             checksum = checksum ^ (data->at(i) & 0xFF);
         }
-       // checksum = checksum  ^ data->at(0) ^ data->at(1) ^ 0xb7;
+        // checksum = checksum  ^ data->at(0) ^ data->at(1) ^ 0xb7;
 
     }
     if (data->length() == 2){
         _msg = QString(0x02) + QLatin1Char(0) + QLatin1Char(command) + QLatin1Char(0x03) + QString(data->length()) + QString(data->at(0)) + QString(data->at(1)) + QString(checksum) + QLatin1Char(0x04);
     } else
     {
-          _msg = QString(0x02) + QLatin1Char(0) + QLatin1Char(command) + QLatin1Char(0x03) + QString(data->length());
+        _msg = QString(0x02) + QLatin1Char(0) + QLatin1Char(command) + QLatin1Char(0x03) + QString(data->length());
         for (int i =0; i < data->length(); i++)
         {
             _msg = _msg + QString(data->at(i) & 0xFF);

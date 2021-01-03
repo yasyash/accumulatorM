@@ -52,7 +52,7 @@ ModbusIP::ModbusIP(QObject *parent , QString *ip, quint16 *port) : QObject (pare
     sample_t->insert("O3", 0);
     sample_t->insert("NH3", 0);*/
     is_read = false;
-    status = "";
+    status = UNKNOWN;
     connected = m_sock->state();
     qDebug() << "ModbusIP measure equipment handling has been initialized.\n\r";
 }
@@ -91,7 +91,7 @@ ModbusIP::ModbusIP(QObject *parent , QString *ip, quint16 *port, int type) : QOb
 
     m_type = type;
     is_read = false;
-    status = "";
+    status = UNKNOWN;
     connected = m_sock->state();
     qDebug() << "ModbusIP measure equipment handling has been initialized.\n\r";
 }
@@ -167,7 +167,7 @@ void ModbusIP::readData()
                     else
                     {md = (_mode ?  "off" :  "measuring");};
                 }
-                if ((_type == 2) && (addr > 9)){ name = "CH2O"; //hardcoded for the Fort measure equipment address = 30 (or OPTEC's equipments)
+                if ((_type == 2) && (addr > 8)){ name = "CH2O"; //hardcoded for the Fort measure equipment address = 30 (or OPTEC's equipments)
                     if (_mode == 2) md = "fault";
                     else
                     {md = (_mode ?  "off" :  "measuring");};
@@ -201,6 +201,20 @@ void ModbusIP::readData()
                 qDebug() << result;
                 measure ->insert(name, measure->value(name) + _measure);
                 sample_t->insert(name, sample_t->value(name) + 1);
+
+                switch (_mode) {
+                case 0 : status = MEASURING;
+                    break;
+                case 1 : status = DOWN;
+                    break;
+                case 2 : status = FAILURE;
+                    break;
+                case 3 : status = TEMP_NOT_READY;
+                    break;
+                case 7 : status = SENS_CHNG;
+                    break;
+                default: break;
+                }
                 i = data.indexOf(':', pool+i); //detection of new chain position
             }
             else {
@@ -211,7 +225,7 @@ void ModbusIP::readData()
         }
         is_read = false;
     }
-   if (!is_read){
+    if (!is_read){
         /*if (sample_t->value("NO") <1 ){
             measure->insert("NO", 0);
             sample_t->insert("NO", 1);

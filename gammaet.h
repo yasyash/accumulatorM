@@ -62,8 +62,10 @@ public:
     //enum _status {Idle, Waiting, Running};
     int m_type = 485;
     enum _command {RDMN, MSTATUS, MSTART, MSTOP, RMMEAS};
+    enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, UNKNOWN};
+
     QString model;
-    QString status;
+    _status status;
     bool is_read;
     QMap<QString, int> *sample_t;
     QMap<QString, int> *measure;

@@ -34,6 +34,7 @@ public:
 
     virtual ~Serinus();
     void readGases (int qw);
+    void readStatus();
     void sendData(int command, QByteArray *data);
 
 signals:
@@ -64,8 +65,10 @@ public:
     int m_type = 51;
     bool verbose = false;//type of equipmets
     enum _command {RDMN, MSTATUS, MSTART, MSTOP, RMMEAS};
+    enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, SAMPLE_FILL, ELECTRONIC_ZERO_ADJUST, INSTRUMENT_WARM_UP, UNKNOWN, ABSENT};
+
     QString model;
-    QString status;
+    _status status;
     bool is_read;
     QMap<QString, int> *sample_t;
     QMap<QString, float> *measure;

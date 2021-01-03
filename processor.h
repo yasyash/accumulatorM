@@ -26,6 +26,7 @@
 #include <QMutex>
 #include <QUuid>
 #include <QVector>
+#include <QMetaEnum>
 
 #include "modbus.h"
 #include "modbusip.h"
@@ -40,9 +41,14 @@
 #include "topasip.h"
 #include "gammaet.h"
 
+#define ENUM_TO_STR(ENUM) QString(#ENUM)
+
+
 class processor : public QObject
 {
     Q_OBJECT
+
+
 public:
     processor(QObject *_parent = 0,  QStringList *cmdline = 0 );
     ~processor();
@@ -60,6 +66,10 @@ public:
     void releaseModbus(void);
     virtual modbus_t*  modbus() { return m_serialModbus; }
 public:
+
+    enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, SAMPLE_FILL, ELECTRONIC_ZERO_ADJUST, INSTRUMENT_WARM_UP, UNKNOWN, ABSENT};
+    Q_ENUM(_status)
+
     static QMap<QString, int>   * ms_data; //assosiative array of polling data
     static QMap<QString, int>   * ms_measure; //assosiative array of measurement quantities
     static QMap<QString, int>   * ms_range; //assosiative array of measurement equipments range
@@ -111,6 +121,7 @@ private:
     QMap<QString, int>   * m_data; //assosiative array of polling data
     QMap<QString, int>   * m_measure; //assosiative array of measurement quantities
     QMap<QString, int>   * m_range; //assosiative array of measurement equipments range
+    QMap<QString, _status> * m_status; //assosiative array of measurements status
 
     QMap<QString, QUuid>   * m_uuid; //assosiative array of sensors uuid
     //QList<int> *m_pool;
@@ -186,6 +197,7 @@ private:
 
 private:
     void squeezeAlarmMsg();
+    void initStatus();
 
 
 };

@@ -52,7 +52,7 @@ GammaET::GammaET(QObject *parent , QString *ip, quint16 *port) : QObject (parent
     sample_t->insert("O3", 0);
     sample_t->insert("NH3", 0);*/
     is_read = false;
-    status = "";
+    status = UNKNOWN;
     connected = m_sock->state();
     qDebug() << "GammaET equipment handling has been initialized.\n\r";
 }
@@ -91,7 +91,7 @@ GammaET::GammaET(QObject *parent , QString *ip, quint16 *port, int type) : QObje
 
     m_type = type;
     is_read = false;
-    status = "";
+    status = UNKNOWN;
     connected = m_sock->state();
     qDebug() << "GammaET equipment handling has been initialized.\n\r";
 }
@@ -196,6 +196,17 @@ void GammaET::readData()
                 measure ->insert(name, measure->value(name) + _measure);
                 sample_t->insert(name, sample_t->value(name) + 1);
                 i = data.indexOf(':', pool+i); //detection of new chain position
+
+                switch (_mode) {
+                case 0 : status = MEASURING;
+                    break;
+                case 1 : status = DOWN;
+                    break;
+                case 2 : status = FAILURE;
+                    break;
+
+                default: break;
+                }
             }
             else {
                 i = data.indexOf(':', i+1);

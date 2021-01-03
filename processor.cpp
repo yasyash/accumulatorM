@@ -54,6 +54,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 {
 
     QStringList cmdline_args =  *cmdline;
+    m_status =  new QMap<QString, _status>;
 
     int _verbose = cmdline_args.indexOf("-verbose");
     if (_verbose > 0)
@@ -697,6 +698,51 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             }
         }
     }
+
+    //status init
+
+    m_status->insert("CO", ABSENT);
+    m_status->insert("NO2", ABSENT);
+    m_status->insert("NO", ABSENT);
+
+    m_status->insert("O3", ABSENT);
+    m_status->insert("NH3", ABSENT);
+    m_status->insert("CH2O", ABSENT);
+
+    m_status->insert("NOx", ABSENT);
+
+
+    m_status->insert("SO2", ABSENT);
+    m_status->insert("H2S", ABSENT);
+
+
+    m_status->insert("бензол", ABSENT);
+    m_status->insert("толуол", ABSENT);
+    m_status->insert("этилбензол", ABSENT);
+    m_status->insert("м,п-ксилол", ABSENT);
+    m_status->insert("о-ксилол", ABSENT);
+    m_status->insert("хлорбензол", ABSENT);
+    m_status->insert("стирол", ABSENT);
+    m_status->insert("фенол", ABSENT);
+
+    m_status->insert("Напряжение мин.", ABSENT);
+    m_status->insert("Напряжение макс.", ABSENT);
+
+
+    m_status->insert("PM", ABSENT);
+    m_status->insert("PM1", ABSENT);
+    m_status->insert("PM2.5", ABSENT);
+    m_status->insert("PM4", ABSENT);
+    m_status->insert("PM10", ABSENT);
+
+    //GammaET elements
+
+    m_status->insert("CH", ABSENT);
+    m_status->insert("HCH", ABSENT);
+    m_status->insert("CH4", ABSENT);
+
+
+    initStatus();
 
 }
 
@@ -1766,7 +1812,7 @@ void processor::transactionDB(void)
 
 
 
-        if ((val != -1)&& ((m_measure->value(_key) > 0 ) || is_static)){
+        if ((val != -1)&& ((m_measure->value(_key) > 0 ) || is_static) && ((m_status->value(_key)== MEASURING)||(m_status->value(_key)== UNKNOWN))){
             //QSqlQuery query = QSqlQuery(*m_conn);
             int _samples = m_measure->value(sensor.key(), 1);
 
@@ -1848,16 +1894,33 @@ void processor::transactionDB(void)
 
 
             }
+
+
         }
         else { //logging error
+            QMetaEnum metaEnum = QMetaEnum::fromType<processor::_status>();
 
-            if ((val == -1)) {//if measure is absend
+            if ((val == -1)&&(m_status->value(_key)!= ABSENT)) {//if measure is absend
 
                 query_log.bindValue(":date_time", tmp_time );
                 query_log.bindValue( ":type", 404 );
-                query_log.bindValue(":descr", "Сенсор " + _key + "     " + QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]"))+"  на посту " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " не отвечает..."  );
+                query_log.bindValue(":descr", "Сенсор " + _key + "     " + QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]"))+"  на посту " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " не отвечает. Статус серсора - "
+                                    + metaEnum.valueToKey( m_status->value(_key)));
 
                 query_log.exec();
+            }
+
+            if (val != -1)
+            {
+                //if instruments measure but not ready
+
+                query_log.bindValue(":date_time", tmp_time );
+                query_log.bindValue( ":type", 404 );
+                query_log.bindValue(":descr", "Сенсор " + _key + "     " + QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]"))+"  на посту " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " не отвечает. Статус серсора - "
+                                    + metaEnum.valueToKey( m_status->value(_key)));
+
+                query_log.exec();
+
             }
 
         }
@@ -1894,6 +1957,7 @@ void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
         qDebug() << query->value("typemeasure").toString() << "  -----  "<< query->value("serialnum").toUuid() <<"\n\r";
 
         m_uuid->insert( query->value("typemeasure").toString(), query->value("serialnum").toUuid());
+
         query->next();
     }
     query->finish();
@@ -1901,6 +1965,80 @@ void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
 
 }
 
+void  processor::initStatus()
+{
+
+    if ((m_modbusip))
+    {
+        m_status->insert("CO", UNKNOWN);
+        m_status->insert("NO2", UNKNOWN);
+        m_status->insert("NO", UNKNOWN);
+
+        m_status->insert("O3", UNKNOWN);
+        m_status->insert("NH3", UNKNOWN);
+        m_status->insert("CH2O", UNKNOWN);
+
+    }
+
+    if ((m_serinus44))
+    {
+        m_status->insert("NO2", UNKNOWN);
+        m_status->insert("NO", UNKNOWN);
+        m_status->insert("NH3", UNKNOWN);
+        m_status->insert("NOx", UNKNOWN);
+
+    }
+
+    if (m_serinus30){
+        m_status->insert("CO", UNKNOWN);
+
+    }
+
+    if (m_serinus50)
+        m_status->insert("SO2", UNKNOWN);
+    if (m_serinus55)
+        m_status->insert("H2S", UNKNOWN);
+    if (m_serinus){
+        m_status->insert("SO2", UNKNOWN);
+        m_status->insert("H2S", UNKNOWN);
+    }
+
+
+
+    if (m_liga){
+        m_status->insert("бензол", UNKNOWN);
+        m_status->insert("толуол", UNKNOWN);
+        m_status->insert("этилбензол", UNKNOWN);
+        m_status->insert("м,п-ксилол", UNKNOWN);
+        m_status->insert("о-ксилол", UNKNOWN);
+        m_status->insert("хлорбензол", UNKNOWN);
+        m_status->insert("стирол", UNKNOWN);
+        m_status->insert("фенол", UNKNOWN);
+    }
+    if (m_ups){
+        m_status->insert("Напряжение мин.", UNKNOWN);
+        m_status->insert("Напряжение макс.", UNKNOWN);
+    }
+
+    if (m_topasip || m_dust || m_grimm){
+        m_status->insert("PM", UNKNOWN);
+        m_status->insert("PM1", UNKNOWN);
+        m_status->insert("PM2.5", UNKNOWN);
+        m_status->insert("PM4", UNKNOWN);
+        m_status->insert("PM10", UNKNOWN);
+
+
+    }
+
+
+    //GammaET elements
+    if (m_gammaet)
+    {
+        m_status->insert("CH", UNKNOWN);
+        m_status->insert("HCH", UNKNOWN);
+        m_status->insert("CH4", UNKNOWN);
+    }
+}
 
 //Read the status of devices that are connected via TCP
 void processor::readSocketStatus()
@@ -2025,7 +2163,8 @@ void processor::readSocketStatus()
     // Read Serinus status
     if (m_serinus) {
         if (m_serinus->connected)
-        {   m_serinus->readGases(2);
+        {   m_serinus->readStatus();
+            m_serinus->readGases(2);
             if(verbose)
 
                 qDebug()<< "\n\rSerinus 51 read command sent\n\r";
@@ -2036,7 +2175,8 @@ void processor::readSocketStatus()
 
     if (m_serinus50) {
         if (m_serinus50->connected)
-        {   m_serinus50->readGases(1);
+        {   m_serinus50->readStatus();
+            m_serinus50->readGases(1);
             if(verbose)
 
                 qDebug()<< "\n\rSerinus 50 read command sent\n\r" ;
@@ -2048,6 +2188,7 @@ void processor::readSocketStatus()
     if (m_serinus55) {
         if (m_serinus55->connected)
         {
+            m_serinus55->readStatus();
             m_serinus55->readGases(1);
             if(verbose)
 
@@ -2060,6 +2201,7 @@ void processor::readSocketStatus()
     if (m_serinus30) {
         if (m_serinus30->connected)
         {
+            m_serinus30->readStatus();
             m_serinus30->readGases(1);
             if(verbose)
 
@@ -2072,6 +2214,7 @@ void processor::readSocketStatus()
     if (m_serinus44) {
         if (m_serinus44->connected)
         {
+            m_serinus44->readStatus();
             m_serinus44->readGases(4);
 
             if(verbose)
