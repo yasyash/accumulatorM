@@ -253,6 +253,8 @@ void Serinus::readData()
                     break;
                 default: break;
                 }
+                if (verbose)
+                qDebug() <<  "Serinus"<< m_type <<" return status is " << int(data[6]);
             }
             if (start < data.length()-1){
 
