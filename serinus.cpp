@@ -52,7 +52,8 @@ Serinus::Serinus(QObject *parent , QString *ip, quint16 *port) : QObject (parent
     sample_t->insert("H2S", 0 );
 
     is_read = false;
-    status = UNKNOWN;
+    status = new     QMap<QString, _status>;
+
     connected = m_sock->state();
 
     qDebug() << "Serinus 51 measure equipment handling has been initialized.\n\r";
@@ -126,7 +127,7 @@ Serinus::Serinus(QObject *parent , QString *ip, quint16 *port, int type) : QObje
         break;
     }
     is_read = false;
-    status = UNKNOWN;
+    status = new     QMap<QString, _status>;
     connected = m_sock->state();
 
     qDebug() << "Serinus" << type <<" measure equipment handling has been initialized.\n\r";
@@ -228,6 +229,7 @@ void Serinus::readData()
     int i, j, start;
     float result;
     int total_regs = 2;
+    enum _status __status;
 
     data.append( _data); //copy to main buffer
 
@@ -241,20 +243,20 @@ void Serinus::readData()
             {
                 switch (int(data[6])) {
 
-                case 0 : status = SAMPLE_FILL;
+                case 0 : __status = SAMPLE_FILL;
                     break;
-                case 1 : status = MEASURING;
+                case 1 : __status = MEASURING;
                     break;
-                case 28 : status = ELECTRONIC_ZERO_ADJUST;
+                case 28 : __status = ELECTRONIC_ZERO_ADJUST;
                     break;
-                case 29 : status = INSTRUMENT_WARM_UP;
+                case 29 : __status = INSTRUMENT_WARM_UP;
                     break;
                 default: break;
                 }
             }
             if (start < data.length()-1){
 
-               data = data.mid(start+1);
+                data = data.mid(start+1);
             }
         }
 
@@ -319,6 +321,8 @@ void Serinus::readData()
                             measure->insert("H2S", measure->value("H2S") + 0.00000000f);
                         }
                     }
+                    status->insert("SO2", __status);
+                    status->insert("H2S", __status);
 
                     break;
 
@@ -333,6 +337,7 @@ void Serinus::readData()
                             sample_t->insert("SO2", sample_t->value("SO2") + 1);
                             measure->insert("SO2",  measure->value("SO2") + 0.00000000f);
                         }}
+                    status->insert("SO2", __status);
 
                     break;
                 case 55:
@@ -347,6 +352,7 @@ void Serinus::readData()
                             measure->insert("H2S", measure->value("H2S") + 0.000000000f);
                         }}
 
+                    status->insert("H2S", __status);
 
                     break;
 
@@ -361,6 +367,7 @@ void Serinus::readData()
                             sample_t->insert("CO", sample_t->value("CO") + 1);
                             measure->insert("CO",  measure->value("CO") + 0.00000000f);
                         }}
+                    status->insert("CO", __status);
 
                     break;
 
@@ -414,7 +421,10 @@ void Serinus::readData()
                             measure->insert("NH3", measure->value("NH3") + 0.00000000f);
                         }
                     }
-
+                    status->insert("NOx", __status);
+                    status->insert("NO2", __status);
+                    status->insert("NO", __status);
+                    status->insert("NH3", __status);
                     break;
 
                 default:
@@ -431,7 +441,7 @@ void Serinus::readData()
                 qDebug() << "Serinus"<< m_type <<" measure equipment data: " << data << " lenght - " << data.length() << " \n\r";
 
             data.clear();
-            emit dataIsReady(&is_read, measure, sample_t);
+            emit dataIsReady(&is_read, measure, sample_t, status);
 
         }
 

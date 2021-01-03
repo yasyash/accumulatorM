@@ -37,12 +37,6 @@ public:
     void readStatus();
     void sendData(int command, QByteArray *data);
 
-signals:
-    void tcpPortActive(bool val);
-    void connectionError(const QString &msg);
-    void dataIsReady( bool *is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample  );
-
-
 protected:
     void changeInterface(const QString& address, quint16 portNbr);
 
@@ -66,15 +60,21 @@ public:
     bool verbose = false;//type of equipmets
     enum _command {RDMN, MSTATUS, MSTART, MSTOP, RMMEAS};
     enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, SAMPLE_FILL, ELECTRONIC_ZERO_ADJUST, INSTRUMENT_WARM_UP, UNKNOWN, ABSENT};
+    Q_ENUM(_status)
 
     QString model;
-    _status status;
+    QMap<QString, _status> *status;
     bool is_read;
     QMap<QString, int> *sample_t;
     QMap<QString, float> *measure;
     enum _command last_command;
     QAbstractSocket::SocketState connected = QAbstractSocket::UnconnectedState;
     // QDataStream *in_stream;
+signals:
+    void tcpPortActive(bool val);
+    void connectionError(const QString &msg);
+    void dataIsReady( bool *is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample, QMap<QString, _status> *_status  );
+
 };
 
 #endif // SERINUS_H

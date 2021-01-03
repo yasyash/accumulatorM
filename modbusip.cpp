@@ -52,7 +52,8 @@ ModbusIP::ModbusIP(QObject *parent , QString *ip, quint16 *port) : QObject (pare
     sample_t->insert("O3", 0);
     sample_t->insert("NH3", 0);*/
     is_read = false;
-    status = UNKNOWN;
+
+    status = new     QMap<QString, _status>;
     connected = m_sock->state();
     qDebug() << "ModbusIP measure equipment handling has been initialized.\n\r";
 }
@@ -91,7 +92,7 @@ ModbusIP::ModbusIP(QObject *parent , QString *ip, quint16 *port, int type) : QOb
 
     m_type = type;
     is_read = false;
-    status = UNKNOWN;
+    status = new     QMap<QString, _status>;
     connected = m_sock->state();
     qDebug() << "ModbusIP measure equipment handling has been initialized.\n\r";
 }
@@ -203,15 +204,15 @@ void ModbusIP::readData()
                 sample_t->insert(name, sample_t->value(name) + 1);
 
                 switch (_mode) {
-                case 0 : status = MEASURING;
+                case 0 : status->insert(name, MEASURING);
                     break;
-                case 1 : status = DOWN;
+                case 1 : status->insert(name, DOWN);
                     break;
-                case 2 : status = FAILURE;
+                case 2 : status->insert(name, FAILURE);
                     break;
-                case 3 : status = TEMP_NOT_READY;
+                case 3 : status->insert(name, TEMP_NOT_READY);
                     break;
-                case 7 : status = SENS_CHNG;
+                case 7 : status->insert(name, SENS_CHNG);
                     break;
                 default: break;
                 }
@@ -246,7 +247,7 @@ void ModbusIP::readData()
             measure->insert("CO", 0);
             sample_t->insert("CO", 1);
         }*/
-        emit dataIsReady(&is_read, measure, sample_t);
+        emit dataIsReady(&is_read, measure, sample_t, status);
     }
 }
 void ModbusIP::displayError(QAbstractSocket::SocketError socketError)

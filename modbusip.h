@@ -36,12 +36,6 @@ public:
     int toAscii(int *_ch);
     void sendData(int address, int registers);
 
-signals:
-    void tcpPortActive(bool val);
-    void connectionError(const QString &msg);
-    void dataIsReady( bool *is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample  );
-
-
 protected:
     void changeInterface(const QString& address, quint16 portNbr);
 
@@ -61,16 +55,24 @@ private:
 public:
     //enum _status {Idle, Waiting, Running};
     int m_type = 485;
+
     enum _command {RDMN, MSTATUS, MSTART, MSTOP, RMMEAS};
-    enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, UNKNOWN};
+    enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, SAMPLE_FILL, ELECTRONIC_ZERO_ADJUST, INSTRUMENT_WARM_UP, UNKNOWN, ABSENT};
+    Q_ENUM(_status)
+
     QString model;
-    _status status;
+    QMap<QString, _status> *status;
     bool is_read;
     QMap<QString, int> *sample_t;
     QMap<QString, int> *measure;
     enum _command last_command;
     QAbstractSocket::SocketState connected = QAbstractSocket::UnconnectedState;
     // QDataStream *in_stream;
+
+signals:
+    void tcpPortActive(bool val);
+    void connectionError(const QString &msg);
+    void dataIsReady( bool *is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample, QMap<QString, _status> *_status  );
 };
 
 #endif // MODBUSIP_H

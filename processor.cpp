@@ -115,7 +115,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         {
             m_gammaet = new GammaET(this, &m_gammaet_ip, &m_gammaet_port);
 
-            connect(m_gammaet, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_gammaet, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
         }
 
 
@@ -142,7 +142,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         {
             m_modbusip = new ModbusIP(this, &m_modbus_ip, &m_modbus_port);
 
-            connect(m_modbusip, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*))); //fill several data to one sensor's base
+            connect(m_modbusip, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
         }
 
@@ -414,7 +414,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         else
         {
             m_serinus = new Serinus(this, &m_serinus_ip, &m_serinus_port);
-            connect(m_serinus, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_serinus, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
             if (verbose)
                 m_serinus->verbose = true;
@@ -436,7 +436,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         else
         {
             m_serinus55 = new Serinus(this, &m_serinus_ip55, &m_serinus_port55, int(55));
-            connect(m_serinus55, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_serinus55, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
             if (verbose)
                 m_serinus55->verbose = true;
@@ -458,7 +458,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         else
         {
             m_serinus50 = new Serinus(this, &m_serinus_ip50, &m_serinus_port50, int(50));
-            connect(m_serinus50, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_serinus50, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
             if (verbose)
                 m_serinus50->verbose = true;
@@ -480,7 +480,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         else
         {
             m_serinus30 = new Serinus(this, &m_serinus_ip30, &m_serinus_port30, int(30));
-            connect(m_serinus30, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_serinus30, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
             if (verbose)
                 m_serinus30->verbose = true;
@@ -502,7 +502,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         else
         {
             m_serinus44 = new Serinus(this, &m_serinus_ip44, &m_serinus_port44, int(44));
-            connect(m_serinus44, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_serinus44, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
             if (verbose)
                 m_serinus44->verbose = true;
@@ -1380,7 +1380,7 @@ void processor::renovateSlaveID( void )
 
             m_modbusip->~ModbusIP();
             m_modbusip = new ModbusIP(this, &m_modbus_ip, &m_modbus_port);
-            connect(m_modbusip, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_modbusip, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
         }
     }
@@ -1391,7 +1391,7 @@ void processor::renovateSlaveID( void )
 
             m_gammaet->~GammaET();
             m_gammaet = new GammaET(this, &m_gammaet_ip, &m_gammaet_port);
-            connect(m_gammaet, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+            connect(m_gammaet, SIGNAL(dataIsReady(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorDataModbus(bool*, QMap<QString, int>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
         }
     }
@@ -1452,7 +1452,7 @@ void processor::renovateSlaveID( void )
 
                 m_serinus->~Serinus();
                 m_serinus = new Serinus(this, &m_serinus_ip, &m_serinus_port);
-                connect(m_serinus, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+                connect(m_serinus, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
             }
         }
@@ -1466,7 +1466,7 @@ void processor::renovateSlaveID( void )
 
                 m_serinus50->~Serinus();
                 m_serinus50 = new Serinus(this, &m_serinus_ip, &m_serinus_port, int(50));
-                connect(m_serinus50, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+                connect(m_serinus50, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
             }
         }
@@ -1480,7 +1480,7 @@ void processor::renovateSlaveID( void )
 
                 m_serinus55->~Serinus();
                 m_serinus55 = new Serinus(this, &m_serinus_ip55, &m_serinus_port55, int(55));
-                connect(m_serinus55, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+                connect(m_serinus55, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
             }
         }
@@ -1494,7 +1494,7 @@ void processor::renovateSlaveID( void )
 
                 m_serinus30->~Serinus();
                 m_serinus30 = new Serinus(this, &m_serinus_ip30, &m_serinus_port30, int(30));
-                connect(m_serinus30, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+                connect(m_serinus30, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
             }
         }
@@ -1507,7 +1507,7 @@ void processor::renovateSlaveID( void )
 
                 m_serinus44->~Serinus();
                 m_serinus44 = new Serinus(this, &m_serinus_ip44, &m_serinus_port44, int(44));
-                connect(m_serinus44, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
+                connect(m_serinus44, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QMap<QString, _status>*))); //fill several data to one sensor's base
 
             }
         }
