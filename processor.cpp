@@ -63,6 +63,15 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         qDebug () << "Fetcher version " <<  APP_VERSION;
 
     }
+    int _transactTime = cmdline_args.indexOf("-transtime");
+    if (_transactTime > 0)
+    {
+        m_transactTime =  new int;
+        *m_transactTime = cmdline_args.value(cmdline_args.indexOf("-transtime") +1).toInt();
+        qDebug () << "Transaction in every" <<  *m_transactTime << "  seconds...";
+
+    }
+
     int _ver = cmdline_args.indexOf("-version");
     if (_ver > 0)
     {
@@ -1632,10 +1641,10 @@ void processor::transactionDB(void)
     int val;
     float average;
     QString tmp_time = QDateTime::currentDateTime().toString( "yyyy-MM-dd hh:mm:ss"); //all SQL INSERTs should be at the same time
-
+    qDebug() << "Transaction time is " << tmp_time;
     //prepare for trouble logging
-    query_log.prepare("INSERT INTO logs (date_time, type, descr ) "
-                      "VALUES ( :date_time, :type, :descr)");
+    query_log.prepare("INSERT INTO logs (date_time, type, descr, idd ) "
+                      "VALUES ( :date_time, :type, :descr, :idd)");
 
     //Alarm data reading and filtering
     if (m_fire){
@@ -1905,9 +1914,9 @@ void processor::transactionDB(void)
 
                 query_log.bindValue(":date_time", tmp_time );
                 query_log.bindValue( ":type", 404 );
-                query_log.bindValue(":descr", "Сенсор " + _key + "     " + QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]"))+"  на посту " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " не отвечает. Статус серсора - "
+                query_log.bindValue(":descr", "Сенсор " + _key + "     " + QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]"))+"  на посту " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " не отвечает. Статус сенсора - "
                                     + metaEnum.valueToKey( m_status->value(_key)));
-
+                query_log.bindValue( ":idd", QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) );
                 query_log.exec();
             }
 
@@ -1944,7 +1953,12 @@ void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
     query->first();
     QSqlRecord rec = query->record();
 
-    m_transactTimer->start(rec.field("average_period").value().toInt() *1000);
+    if (!m_transactTime){
+        m_transactTimer->start(rec.field("average_period").value().toInt() *1000);
+    } else {
+        m_transactTimer->start(*m_transactTime * 1000);
+    }
+
     if( !m_pollTimer->isActive() )
     {
         m_transactTimer->stop();

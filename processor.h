@@ -141,7 +141,7 @@ private:
     int funcModbus;
     int addrModbus;
     int numCoils;
-
+    int *m_transactTime;
     bool verbose; //verbose mode flag
 
     ups_status *m_ups = nullptr;   //member for UPS status
