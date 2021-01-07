@@ -129,6 +129,57 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _
 
 }
 
+MeteoTcpSock::MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, QString *_model): QObject (parent)
+{
+    m_sock = new QTcpSocket(this);
+
+    connect(m_sock, SIGNAL(readyRead()), this, SLOT(readData()));
+    connect(m_sock, SIGNAL(bytesWritten(qint64)), this, SLOT(writes()));
+
+    connect(m_sock, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+    //connect(this, SIGNAL(dataReady(QByteArray&)), this, SLOT(setData(QByteArray&)) );
+
+    changeInterface(*ip, *port);
+    m_sock->setSocketOption(QAbstractSocket::LowDelayOption, 0);
+    //qDebug() << "Socket " << m_sock->socketOption(QAbstractSocket::SendBufferSizeSocketOption);
+    // m_sock->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024);
+    // qDebug() << "Socket next " << m_sock->socketOption(QAbstractSocket::SendBufferSizeSocketOption);
+
+    m_sock->setSocketOption(QAbstractSocket::TypeOfServiceOption, 64);
+
+    measure = new  QMap<QString, float>;
+    measure_prev = new  QMap<QString, float>;
+
+    measure_prev->insert("bar", 0.0f);
+    measure_prev->insert("temp_in", 0.0f);
+    measure_prev->insert("hum_in", 0.0f);
+    measure_prev->insert("temp_out", 0.0f);
+    measure_prev->insert("speed_wind", 0.0f);
+    measure_prev->insert("dir_wind", 0.0f);
+    measure_prev->insert("dew_pt", 0.0f);
+    measure_prev->insert("hum_out", 0.0f);
+    measure_prev->insert("heat_indx", 0.0f);
+    measure_prev->insert("chill_wind", 0.0f);
+    measure_prev->insert("thsw_indx", 0.0f);
+    measure_prev->insert("rain_rate", 0.0f);
+    measure_prev->insert("uv_indx", 0.0f);
+    measure_prev->insert("rad_solar", 0.0f);
+    //measure->insert("rain_daily", 0);
+    measure_prev->insert("rain", 0.0f); //mm per hour
+    measure_prev->insert("et", 0.0f); //evaporotransportation in mm per day
+    //measure->insert("batt_remote", 0);
+
+    is_read = false;
+    status = "";
+    sample_t = 0;
+    model = new QString (*_model);
+
+    connected = m_sock->state();
+
+
+    qDebug() << "Meteostation model"<< *_model << " handling has been initialized.\n\r";
+}
+
 MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _in, float _out, QString *_model) : QObject (parent)
 
 {

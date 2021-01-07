@@ -373,6 +373,10 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         }
         else
         {
+            QString meteoparams = cmdline_args.value(cmdline_args.indexOf("-meteoparams") +1);
+
+
+
             QSqlQuery *query= new QSqlQuery ("select * from sensors_data where typemeasure = 'Темп. внутренняя' order by date_time desc", *m_conn);
             qDebug() << "Temp. inner status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
             query->first();
@@ -396,10 +400,20 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             }
 
             if (model == ""){
-
-                m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out);
+                if (meteoparams == "db")
+                {
+                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out);
+                } else{
+                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port);
+                }
             } else {
-                m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out, &model);
+                if (meteoparams == "db")
+                {
+                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out, &model);
+                } else {
+                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, &model);
+
+                }
             }
         }
 
