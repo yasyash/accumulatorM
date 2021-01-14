@@ -297,6 +297,8 @@ void MeteoTcpSock::readData()
         QString _tmp;
         int _ind;
         float _result;
+        int wrong = 0;
+
         if (list.length() > 1){
             while (_strli.hasNext())
             {
@@ -307,12 +309,15 @@ void MeteoTcpSock::readData()
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("temp_out", measure->value("temp_out") + _result);
+                    wrong++;
                 }
                 _ind  =   _tmp.indexOf("Tp");
 
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("dew_pt", measure->value("dew_pt") + _result);
+                    wrong++;
+
                 }
 
                 _ind  =   _tmp.indexOf("Tw");
@@ -320,6 +325,8 @@ void MeteoTcpSock::readData()
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("chill_wind", measure->value("chill_wind") + _result);
+                    wrong++;
+
                 }
 
                 _ind  =   _tmp.indexOf("Hr");
@@ -327,12 +334,16 @@ void MeteoTcpSock::readData()
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("hum_out", measure->value("hum_out") + _result);
+                    wrong++;
+
                 }
                 _ind  =   _tmp.indexOf("Pa");
 
                 if (_ind != -1){
                     _result = (_tmp.mid(2,_tmp.length()-3).toFloat())/100*75; //hPa to mmHg
                     measure->insert("bar", measure->value("bar") + _result);
+                    wrong++;
+
                 }
 
                 _ind  =   _tmp.indexOf("Sa");
@@ -340,6 +351,8 @@ void MeteoTcpSock::readData()
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("speed_wind", measure->value("speed_wind") + _result);
+                    wrong++;
+
                 }
 
                 _ind  =   _tmp.indexOf("Da");
@@ -347,6 +360,8 @@ void MeteoTcpSock::readData()
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("dir_wind", measure->value("dir_wind") + _result);
+                    wrong++;
+
                 }
 
                 _ind  =   _tmp.indexOf("Ra");
@@ -354,17 +369,22 @@ void MeteoTcpSock::readData()
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("rain_rate", measure->value("rain_rate") + _result);
+                    wrong++;
+
                 }
                 _ind  =   _tmp.indexOf("Ri");
 
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                     measure->insert("rain", measure->value("rain") + _result);
+                    wrong++;
+
                 }
 
-                sample_t++;
 
             }
+            if (wrong == 9)
+                sample_t++;
 
 
         }

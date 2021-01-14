@@ -52,7 +52,9 @@ GammaET::GammaET(QObject *parent , QString *ip, quint16 *port) : QObject (parent
     sample_t->insert("O3", 0);
     sample_t->insert("NH3", 0);*/
     is_read = false;
-    status = UNKNOWN;
+    status = new     QMap<QString, _status>;
+
+
     connected = m_sock->state();
     qDebug() << "GammaET equipment handling has been initialized.\n\r";
 }
@@ -91,7 +93,7 @@ GammaET::GammaET(QObject *parent , QString *ip, quint16 *port, int type) : QObje
 
     m_type = type;
     is_read = false;
-    status = UNKNOWN;
+    status = new     QMap<QString, _status>;
     connected = m_sock->state();
     qDebug() << "GammaET equipment handling has been initialized.\n\r";
 }
@@ -198,11 +200,21 @@ void GammaET::readData()
                 i = data.indexOf(':', pool+i); //detection of new chain position
 
                 switch (_mode) {
-                case 0 : status = MEASURING;
+                case 0 :{
+                    status->insert(name, MEASURING);
+                                }
                     break;
-                case 1 : status = DOWN;
+                case 1 : {
+                    status->insert(name, DOWN);
+
+
+                }
                     break;
-                case 2 : status = FAILURE;
+                case 2 : {
+                    status->insert(name, FAILURE);
+
+
+                }
                     break;
 
                 default: break;
@@ -237,7 +249,7 @@ void GammaET::readData()
             measure->insert("CO", 0);
             sample_t->insert("CO", 1);
         }*/
-        emit dataIsReady(&is_read, measure, sample_t);
+        emit dataIsReady(&is_read, measure, sample_t, status);
     }
 }
 void GammaET::displayError(QAbstractSocket::SocketError socketError)

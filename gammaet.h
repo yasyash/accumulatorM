@@ -36,10 +36,7 @@ public:
     int toAscii(int *_ch);
     void sendData(int address, int registers);
 
-signals:
-    void tcpPortActive(bool val);
-    void connectionError(const QString &msg);
-    void dataIsReady( bool *is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample  );
+
 
 
 protected:
@@ -65,13 +62,19 @@ public:
     enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, UNKNOWN};
 
     QString model;
-    _status status;
+    QMap<QString, _status> *status;
     bool is_read;
     QMap<QString, int> *sample_t;
     QMap<QString, int> *measure;
     enum _command last_command;
     QAbstractSocket::SocketState connected = QAbstractSocket::UnconnectedState;
     // QDataStream *in_stream;
+
+signals:
+    void tcpPortActive(bool val);
+    void connectionError(const QString &msg);
+    void dataIsReady( bool *is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample  );
+    void dataIsReady( bool *is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample,   QMap<QString, _status> *_status  );
 };
 
 #endif // GAMMAET_H
