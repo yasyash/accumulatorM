@@ -434,14 +434,19 @@ void MeteoTcpSock::readData()
 
                 measure->insert("bar",  measure->value("bar") + _result);
             }
-            if ((uchar(data[11])==0xff))
+
+            if ((uchar(data[11]) > 0x04))
             {
-                int _raw =(int(data[11]) > 0 ? 1 : -1) * (((255 - uchar (data [11]))<<8) + uchar(data[10]));
+
+                int _sign = (int(data[11]) > 0 ? 1 : -1);
+                int _raw = (_sign * ((255 - uchar (data [11]))<<8)  -256 + uchar(data[10]));
                 _result = ((float)(_raw)/10-32)*5/9;
+
             }
             else {
                 _result =  ((float)((uchar(data[11])<<8) + (uchar(data[10])))/10-32)*5/9; //Fahrenheit TO Celsius Conversion Formula
             }
+
             if (((uchar(data[11])==0) && uchar(data[10]) == 0 && first_run) || ((uchar(data[11])==0x7f)  && first_run))//|| ((uchar(data[11])==0xff)  && first_run))
             {
                 // measure_prev->insert("temp_in",23.0f);
@@ -480,14 +485,15 @@ void MeteoTcpSock::readData()
 
                 measure->insert("hum_in", measure->value("hum_in") + _result);
             }
+
+
             if ((uchar(data[14])> 0x04))
             {
-                int _raw =(int(data[14]) > 0 ? 1 : -1) * (((255 - uchar (data [14]))<<8) + uchar(data[13]));
+                int _sign = (int(data[14]) > 0 ? 1 : -1);
+                int _raw = (_sign * ((255 - uchar (data [14]))<<8)  -256 + uchar(data[13]));
                 _result = ((float)(_raw)/10-32)*5/9;
             }
             else {
-
-
                 _result = ((float)((uchar(data[14])<<8) + (uchar(data[13])))/10-32)*5/9;//Fahrenheit TO Celsius Conversion Formula
             }
 
