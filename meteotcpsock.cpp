@@ -439,7 +439,7 @@ void MeteoTcpSock::readData()
             {
 
                 int _sign = (int(data[11]) > 0 ? 1 : -1);
-                int _raw = (_sign * ((255 - uchar (data [11]))<<8)  -256 + uchar(data[10]));
+                int _raw = (_sign * ((255 - uchar (data [11]))<<8)  - 255 + uchar(data[10]));
                 _result = ((float)(_raw)/10-32)*5/9;
 
             }
@@ -490,7 +490,7 @@ void MeteoTcpSock::readData()
             if ((uchar(data[14])> 0x04))
             {
                 int _sign = (int(data[14]) > 0 ? 1 : -1);
-                int _raw = (_sign * ((255 - uchar (data [14]))<<8)  -256 + uchar(data[13]));
+                int _raw = (_sign * ((255 - uchar (data [14]))<<8)  - 255 + uchar(data[13]));
                 _result = ((float)(_raw)/10-32)*5/9;
             }
             else {
