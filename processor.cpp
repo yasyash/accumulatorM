@@ -27,6 +27,7 @@
 #include <QSqlRecord>
 #include <QSqlError>
 #include <QSqlField>
+#include <QtMath>
 
 #include <errno.h>
 
@@ -1723,7 +1724,27 @@ void processor::transactionDB(void)
             {
                 if ((meteo_iterator.key() == "dir_wind")||(meteo_iterator.key() == "dir_wind_hi"))
                 {
-                    query.bindValue(QString(":").append(meteo_iterator.key()), QString::number(double(meteo_iterator.value()/m_meteo->sample_t), 'f', 0));
+                    float _sin_avrg, _cos_avrg, dir_angle;
+
+                    _sin_avrg = m_meteo->measure_dir_wind->value("dir_wind_sin") / m_meteo->sample_t;
+                    _cos_avrg = m_meteo->measure_dir_wind->value("dir_wind_cos") / m_meteo->sample_t;
+
+                    dir_angle = float(qAsin(qreal(_sin_avrg)));
+
+                    if ((_sin_avrg > 0)&&(_cos_avrg >0 ))
+                        dir_angle = dir_angle  * 180 / 3.1415926535f;
+
+                    if ((_sin_avrg  > 0 )&&(_cos_avrg < 0))
+                        dir_angle = 180 - dir_angle  * 180 / 3.1415926535f;
+
+                    if ((_sin_avrg < 0)&&(_cos_avrg < 0))
+                        dir_angle = 180 + dir_angle  * 180 / 3.1415926535f;
+
+                    if ((_sin_avrg < 0)&&(_cos_avrg > 0))
+                        dir_angle = 360 + dir_angle  * 180 / 3.1415926535f;
+
+
+                    query.bindValue(QString(":").append(meteo_iterator.key()), QString::number(double(dir_angle), 'f', 0));
                     qDebug() << "Мeteo - "<< meteo_iterator.key() << " samles = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
 
                 }
@@ -1766,6 +1787,7 @@ void processor::transactionDB(void)
             query.finish();
             if (m_meteo){
                 m_meteo->measure->clear();
+                m_meteo->measure_dir_wind->clear();
                 m_meteo->sample_t = 0;
             }
         } else {

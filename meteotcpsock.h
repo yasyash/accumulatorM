@@ -70,7 +70,8 @@ public:
     bool is_read;
     uint sample_t;
     QMap<QString, float> *measure;
-    QMap<QString, float> *measure_prev; // previous sample
+    QMap<QString, float> *measure_dir_wind;
+       QMap<QString, float> *measure_prev; // previous sample
 
     enum _command last_command;
     QAbstractSocket::SocketState connected = QAbstractSocket::UnconnectedState;

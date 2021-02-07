@@ -17,7 +17,7 @@
  */
 
 #include "meteotcpsock.h"
-
+#include <QtMath>
 #include <QDebug>
 
 #ifdef METEOTCPSOCK_H
@@ -43,6 +43,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port) : QObje
     m_sock->setSocketOption(QAbstractSocket::TypeOfServiceOption, 64);
 
     measure = new  QMap<QString, float>;
+    measure_dir_wind =  new QMap<QString, float>;
     measure_prev = new  QMap<QString, float>;
 
     measure_prev->insert("bar", 0.0f);
@@ -97,6 +98,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _
     m_sock->setSocketOption(QAbstractSocket::TypeOfServiceOption, 64);
 
     measure = new  QMap<QString, float>;
+    measure_dir_wind =  new QMap<QString, float>;
     measure_prev = new  QMap<QString, float>;
 
     measure_prev->insert("bar", 0.0f);
@@ -105,7 +107,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _
     measure_prev->insert("temp_out", _out);
     measure_prev->insert("speed_wind", 0.0f);
     measure_prev->insert("dir_wind", 0.0f);
-    measure_prev->insert("dew_pt", 0.0f);
+      measure_prev->insert("dew_pt", 0.0f);
     measure_prev->insert("hum_out", 0.0f);
     measure_prev->insert("heat_indx", 0.0f);
     measure_prev->insert("chill_wind", 0.0f);
@@ -148,6 +150,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, QString 
     m_sock->setSocketOption(QAbstractSocket::TypeOfServiceOption, 64);
 
     measure = new  QMap<QString, float>;
+    measure_dir_wind =  new QMap<QString, float>;
     measure_prev = new  QMap<QString, float>;
 
     measure_prev->insert("bar", 0.0f);
@@ -156,7 +159,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, QString 
     measure_prev->insert("temp_out", 0.0f);
     measure_prev->insert("speed_wind", 0.0f);
     measure_prev->insert("dir_wind", 0.0f);
-    measure_prev->insert("dew_pt", 0.0f);
+       measure_prev->insert("dew_pt", 0.0f);
     measure_prev->insert("hum_out", 0.0f);
     measure_prev->insert("heat_indx", 0.0f);
     measure_prev->insert("chill_wind", 0.0f);
@@ -202,6 +205,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _
     m_sock->setSocketOption(QAbstractSocket::TypeOfServiceOption, 64);
 
     measure = new  QMap<QString, float>;
+    measure_dir_wind =  new QMap<QString, float>;
     measure_prev = new  QMap<QString, float>;
 
     measure_prev->insert("bar", 0.0f);
@@ -210,7 +214,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _
     measure_prev->insert("temp_out", _out);
     measure_prev->insert("speed_wind", 0.0f);
     measure_prev->insert("dir_wind", 0.0f);
-    measure_prev->insert("dew_pt", 0.0f);
+       measure_prev->insert("dew_pt", 0.0f);
     measure_prev->insert("hum_out", 0.0f);
     measure_prev->insert("heat_indx", 0.0f);
     measure_prev->insert("chill_wind", 0.0f);
@@ -359,6 +363,8 @@ void MeteoTcpSock::readData()
 
                 if (_ind != -1){
                     _result = _tmp.mid(2,_tmp.length()-3).toFloat();
+                    measure_dir_wind->insert("dir_wind_sin", measure_dir_wind->value("dir_wind_sin") + float(qSin(qreal(_result * 3.1415926535f / 180.0f))));
+                    measure_dir_wind->insert("dir_wind_cos", measure_dir_wind->value("dir_wind_cos") +  float(qCos(qreal(_result * 3.1415926535f / 180.0f))));
                     measure->insert("dir_wind", measure->value("dir_wind") + _result);
                     wrong++;
 
@@ -557,6 +563,9 @@ void MeteoTcpSock::readData()
 
                 measure->insert("dir_wind",  measure->value("dir_wind") + _result);
             }
+
+            measure_dir_wind->insert("dir_wind_sin", measure_dir_wind->value("dir_wind_sin") + float(qSin(qreal(_result * 3.1415926535f / 180.0f))));
+            measure_dir_wind->insert("dir_wind_cos", measure_dir_wind->value("dir_wind_cos") +  float(qCos(qreal(_result * 3.1415926535f / 180.0f))));
 
             _result = ((float)((uchar(data[32])<<8) + (uchar(data[31])))-32)*5/9; //Fahrenheit TO Celsius Conversion Formula
 
