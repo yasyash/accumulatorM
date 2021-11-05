@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright © 2018-2019 Yaroslav Shkliar <mail@ilit.ru>
+ * Copyright © 2018-2021 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,8 @@
  */
 
 // -slaveid 1 3 11 12 15 -port /dev/ttyr00 -baud 9600 -data 8 -stop 1 -parity none -db weather -user weather -pwd 31415 -dustip 192.168.1.3 -dustport 3602 -alarmip 192.168.1.110 -alarmport 5555 -upsip 192.168.1.120 -upsport 3493 -upsuser liebert -meteoip 192.168.1.200 -meteoport 22222 -polltime 10 -verbose
+
+#include <libssh/libssh.h>
 
 #include "processor.h"
 #include "app.h"
@@ -42,6 +44,23 @@ QMap<QString, int> *processor::ms_measure = new QMap<QString, int>;
 //ms_range->insert("PM2.5", 1000);
 //ms_range->insert("PM4", 1000);
 //ms_range->insert("PM10", 1000);
+
+void free_channel(ssh_channel channel) {
+    ssh_channel_send_eof(channel);
+    ssh_channel_close(channel);
+    ssh_channel_free(channel);
+}
+
+void free_session(ssh_session session) {
+    ssh_disconnect(session);
+    ssh_free(session);
+}
+
+void error(ssh_session session) {
+    qDebug( "Error: %s\n", ssh_get_error(session));
+    free_session(session);
+    exit(-1);
+}
 
 processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_parent),
     m_modbus( NULL ),
@@ -768,6 +787,91 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
 
     initStatus();
+
+    //try ssh
+    if (cmdline_args.indexOf("-sship") > -1)
+        m_ssh_ip = cmdline_args.value(cmdline_args.indexOf("-sship") +1);
+    if (m_ssh_ip == "")
+    {
+        qDebug ( "SSH IP address is not set.\n\r");
+    }
+    else
+    {
+
+        m_ssh_port = cmdline_args.value(cmdline_args.indexOf("-sshport") +1).toUShort();
+        if (m_ssh_port <= 0)
+        {
+            qDebug ("SSH port error:  expected parameter\n\r");
+        }
+        else
+        {
+            m_ssh_user = cmdline_args.value(cmdline_args.indexOf("-sshuser") +1).toUShort();
+            if (m_ssh_user == "")
+            {
+                qDebug ("SSH user error:  expected parameter\n\r");
+            } else {
+                m_ssh_pwd = cmdline_args.value(cmdline_args.indexOf("-sshpwdr") +1).toUShort();
+                if (m_ssh_pwd ==""){
+                    qDebug ("Password user error:  expected parameter\n\r");
+                } else {
+                   m_ssh_command = cmdline_args.value(cmdline_args.indexOf("-sshcommand") +1).toUShort();
+                    if (m_ssh_user == "")
+                    {
+                        qDebug ("SSH command error:  expected parameter\n\r");
+                    } else {
+                        //begin ssh session
+                        ssh_session session;
+                        ssh_channel channel;
+                        int rc;
+                        char buffer[1024];
+                        unsigned int nbytes;
+
+                        qDebug("Session...\n");
+                        session = ssh_new();
+                        if (session == NULL) exit(-1);
+
+                        ssh_options_set(session, SSH_OPTIONS_HOST, m_ssh_ip.toLatin1());
+                        ssh_options_set(session, SSH_OPTIONS_PORT, &m_ssh_port);
+                        ssh_options_set(session, SSH_OPTIONS_USER, m_ssh_user.toLatin1());
+
+                        qDebug("Connecting...\n");
+                        rc = ssh_connect(session);
+                        if (rc != SSH_OK) error(session);
+
+                        qDebug("Password Autentication...\n");
+                        rc = ssh_userauth_password(session, NULL, m_ssh_pwd.toLatin1());
+                        if (rc != SSH_AUTH_SUCCESS) error(session);
+
+                        qDebug("Channel...\n");
+                        channel = ssh_channel_new(session);
+                        if (channel == NULL)  error(session);
+
+                        qDebug("Opening...\n");
+                        rc = ssh_channel_open_session(channel);
+                        if (rc != SSH_OK) error(session);
+
+                        qDebug("Executing remote command...\n");
+                        rc = ssh_channel_request_exec(channel, m_ssh_command.toLatin1());
+                        if (rc != SSH_OK) error(session);
+
+                        qDebug("Received:\n");
+                        nbytes = uint( ssh_channel_read(channel, buffer, sizeof(buffer), 0));
+                        // while (nbytes > 0) {
+                        //      fwrite(buffer, 1, nbytes, stdout);
+                        //      nbytes = ssh_channel_read(channel, buffer, sizeof(buffer), 0);
+                        //}
+                        qDebug("Received:\n", nbytes);
+                        free_channel(channel);
+                        free_session(session);
+                    }
+                }
+            }
+
+
+
+        }
+
+    }
 
 }
 

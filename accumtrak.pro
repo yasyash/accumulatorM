@@ -38,7 +38,8 @@ SOURCES += \
         qtelnet.cpp \
         modbusip.cpp \
         topasip.cpp \
-    gammaet.cpp
+    gammaet.cpp \
+    qsshsocket.cpp
 
 
 
@@ -65,7 +66,8 @@ HEADERS +=\
     qtelnet.h \
     modbusip.h \
     topasip.h \
-    gammaet.h
+    gammaet.h \
+    qsshsocket.h
 
 
 
@@ -101,4 +103,4 @@ DEFINES += DUSTTCP_H
 DEFINES += APP_VERSION=$$VERSION
 
 
-LIBS += -lnetsnmp -ltelnet -lnetsnmpmibs  #-lqt-net-snmp
+LIBS += -lnetsnmp -ltelnet -lnetsnmpmibs -lssh #-lqt-net-snmp

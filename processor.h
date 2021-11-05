@@ -198,6 +198,12 @@ private:
     quint16 m_gammaet_port;
     QMap<int, int> *m_gammapool; //assosiative array of polling slave address - number of registers GammaET dev.
 
+    QString m_ssh_ip;
+    quint16 m_ssh_port;
+    QString m_ssh_user;
+    QString m_ssh_pwd;
+    QString m_ssh_command;
+
 private:
     void squeezeAlarmMsg();
     void initStatus();
