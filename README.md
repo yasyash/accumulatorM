@@ -25,6 +25,34 @@ Modbus & TCP Data Fetcher is a free Qt-based implementation of application wich 
 This program tested with MOXA 5150, 5450 series devices Nport interaction in RealCom and TCP Server modes. Data Fetcher allow to collect measurements to postgresql DB and to edit it in interactive mode.
 
 
+Supported equipments
+--------------------
+
+Gas analyzers total:
+Optek JSC - RF;
+League OJSC - RF;
+Gamma ET - RF;
+FEBA (JSC CIIK) - RF;
+Serinus models by Ecotech Pty Ltd - Australia;
+Grimm GmbH & Co Kr - Germany;
+Turnkey tools - UK;
+TSI Corp. - USA.
+
+Meteocomplexes:
+
+Davis Instruments - USA;
+Lufft GmbH - Germany;
+Vaisala Corp. - Finland;
+
+IVTM - Exciss JSC RF.
+
+Power supplies (all kinds of vendors supporting SNMP management protocol).
+
+Security and fire alarm (JSC Elesta - full integration into the system or any without integration).
+
+Air conditioning systems (any, as well as with WiFi support - direct integration).
+
+
 Requirements
 ------------
 
