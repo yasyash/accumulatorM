@@ -1,11 +1,9 @@
 Modbus & TCP Data Fetcher extend modification
 ==========
-Copyright (c) 2020 Yaroslav Shkliar
-Copyright (c) 2020 ILIT.RU, Research IT Laboratory 
+Copyright (c) 2019-2021 Yaroslav Shkliar
+Copyright (c) 2018-2020 ILIT.RU, Research IT Laboratory 
 
-http://www.ilit.ru
-
-
+http://www.cleenair.ru
 
 This program is free software; you can redistribute it and/or modify 
 it under the terms of the GNU General Public License as published by the
