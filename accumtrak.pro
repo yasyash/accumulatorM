@@ -1,5 +1,5 @@
 
-QT += core sql network concurrent serialport
+QT += core sql network concurrent serialport serialbus
 QT -= gui
 
 TEMPLATE = app
@@ -39,7 +39,8 @@ SOURCES += \
         modbusip.cpp \
         topasip.cpp \
     gammaet.cpp \
-    qsshsocket.cpp
+    qsshsocket.cpp \
+    ivtm.cpp
 
 
 
@@ -67,7 +68,8 @@ HEADERS +=\
     modbusip.h \
     topasip.h \
     gammaet.h \
-    qsshsocket.h
+    qsshsocket.h \
+    ivtm.h
 
 
 

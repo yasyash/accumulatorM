@@ -33,12 +33,15 @@ public:
     MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, float _in, float _out);
     MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, QString *_model);
     MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, float _in, float _out, QString *_model);
+
     virtual ~MeteoTcpSock();
+
     float compare(float _in, float _prev);
     float compare(float _in, float _prev, float coeff);
 
     void sendData(char *data);
 
+    void push_data (const QString &_key, const float &_val);
 
 protected:
     void changeInterface(const QString& address, quint16 portNbr);

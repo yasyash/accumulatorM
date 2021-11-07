@@ -40,6 +40,7 @@
 #include "liga.h"
 #include "topasip.h"
 #include "gammaet.h"
+#include "ivtm.h"
 
 #define ENUM_TO_STR(ENUM) QString(#ENUM)
 
@@ -50,10 +51,9 @@ class processor : public QObject
 
 
 public:
+
     processor(QObject *_parent = 0,  QStringList *cmdline = 0 );
     ~processor();
-
-
 
     static void stBusMonitorAddItem( modbus_t * modbus,
                                      uint8_t isOut, uint8_t slave, uint8_t func, uint16_t addr,
@@ -84,7 +84,7 @@ public slots:
         emit finished ();
     }
     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QMap<QString, _status> *_status); //sensor equipment type or name
-     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample); //polymorphic method for instrument without status
+    void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample); //polymorphic method for instrument without status
     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure); //polymorphic method for slow measuring
     static void static_fillSensorData(  bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample);
     void fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample, QMap<QString, _status> *_status);
@@ -108,6 +108,12 @@ private slots:
 private:
 
     modbus_t * m_serialModbus  = nullptr;
+
+    ivtm *m_ivtm = nullptr;
+    QString m_ivtm_ip;
+    quint16 m_ivtm_port;
+    quint16 m_ivtm_address;
+    quint16 m_ivtm_length;
 
     ModbusIP *m_modbusip = nullptr;
     QString m_modbus_ip;
@@ -160,6 +166,7 @@ private:
     MeteoTcpSock *m_meteo = nullptr; //member for Meteostation
     QString m_meteo_ip;
     quint16 m_meteo_port;
+    QString m_meteo_model;
 
     Serinus *m_serinus = nullptr; //member for Serinus51
     QString m_serinus_ip;

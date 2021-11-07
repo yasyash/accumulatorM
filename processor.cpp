@@ -30,6 +30,7 @@
 #include <QSqlError>
 #include <QSqlField>
 #include <QtMath>
+#include <functional>
 
 #include <errno.h>
 
@@ -38,6 +39,11 @@ extern _App	*globalApp;
 QMap<QString, int> *processor::ms_range = new QMap<QString, int>;
 QMap<QString, int> *processor::ms_data = new QMap<QString, int>;
 QMap<QString, int> *processor::ms_measure = new QMap<QString, int>;
+
+void push_data (const QString &_key, const float &_val)
+{
+
+}
 
 //processor::ms_range->insert("Пыль общая", 1000);
 //ms_range->insert("PM1", 1000);
@@ -123,6 +129,34 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             //<< QString::fromStdString(m_ups->m_voltage->getValue().data()[0]);
         }
     }
+
+    //IVTM init
+    if (cmdline_args.indexOf("-ivtmip")>-1)
+        m_ivtm_ip = cmdline_args.value(cmdline_args.indexOf("-ivtmip") +1);
+
+    if (m_ivtm_ip == "")
+    {
+        qDebug ( "IP address of IVTM is not set.\n\r");
+    }
+    else
+    {
+        m_ivtm_port = cmdline_args.value(cmdline_args.indexOf("-ivtmport") +1).toUShort();
+        if (m_ivtm_port <= 0)
+        {
+            qDebug ("IVTM TCP Modbus port error:  expected parameter\n\r");
+        }
+        else
+        {
+            QUrl _url;
+            _url.setHost(m_ivtm_ip);
+            _url.setPort(m_ivtm_port);
+
+            m_ivtm = new ivtm(_url, 0, 4, 1, 1000, this );
+
+        }
+
+    }
+
 
     // GammaET init
     if (cmdline_args.indexOf("-gammaetip")>-1)
@@ -377,7 +411,6 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
 
     // Meteostation init
-    //  -meteoip 192.168.1.200 -meteoport 22222
 
     m_meteo_ip = cmdline_args.value(cmdline_args.indexOf("-meteoip") +1);
     if (m_meteo_ip == "")
@@ -414,12 +447,11 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             query->finish();
 
 
-            QString model="";
             if (cmdline_args.indexOf("-meteomodel") > -1){
-                model = cmdline_args.value(cmdline_args.indexOf("-meteomodel") +1);
+                m_meteo_model = cmdline_args.value(cmdline_args.indexOf("-meteomodel") +1);
             }
 
-            if (model == ""){
+            if (m_meteo_model == ""){
                 if (meteoparams == "db")
                 {
                     m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out);
@@ -429,9 +461,9 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             } else {
                 if (meteoparams == "db")
                 {
-                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out, &model);
+                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out, &m_meteo_model);
                 } else {
-                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, &model);
+                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, &m_meteo_model);
 
                 }
             }
@@ -814,7 +846,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 if (m_ssh_pwd ==""){
                     qDebug ("Password user error:  expected parameter\n\r");
                 } else {
-                   m_ssh_command = cmdline_args.value(cmdline_args.indexOf("-sshcommand") +1).toUShort();
+                    m_ssh_command = cmdline_args.value(cmdline_args.indexOf("-sshcommand") +1).toUShort();
                     if (m_ssh_user == "")
                     {
                         qDebug ("SSH command error:  expected parameter\n\r");
@@ -1535,6 +1567,22 @@ void processor::renovateSlaveID( void )
             // }
         }
     }
+
+    if (m_ivtm)
+    {
+        if (!m_ivtm->Connect())
+        {
+            m_ivtm->~ivtm();
+
+            QUrl _url;
+
+            _url.setHost(m_ivtm_ip);
+            _url.setPort(m_ivtm_port);
+
+            m_ivtm = new ivtm(_url, 0, 4, 1, 1000, this );
+        }
+    }
+
     if (m_meteo) {
 
         if (!m_meteo->connected){
@@ -1557,12 +1605,11 @@ void processor::renovateSlaveID( void )
                 float temp_out = (rec.field("measure").value().toFloat());
                 query->finish();
 
-                if (m_meteo->model){
+                if (m_meteo_model == ""){
 
                     m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out);
                 } else {
-                    QString _model = *m_meteo->model;
-                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out, &_model);
+                    m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out, &m_meteo_model);
                 }            }
         }
     }
@@ -1817,7 +1864,7 @@ void processor::transactionDB(void)
 
     //Meteo data processing
     if (m_meteo) {
-        if (m_meteo->sample_t >0){
+        if (m_meteo->sample_t > 0){
             query.prepare("INSERT INTO meteo (station, date_time, bar, temp_in, hum_in, temp_out, hum_out, speed_wind, dir_wind, dew_pt, heat_indx, chill_wind, thsw_indx, rain, rain_rate, uv_indx, rad_solar, et) "
                           "VALUES (:station, :date_time, :bar, :temp_in, :hum_in, :temp_out, :hum_out, :speed_wind, :dir_wind, :dew_pt, :heat_indx, :chill_wind, :thsw_indx, :rain, :rain_rate, :uv_indx, :rad_solar, :et)");
 
@@ -2088,7 +2135,8 @@ void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
 
 
     //m_conn = conn;
-    QSqlQuery *query= new QSqlQuery ("select * from equipments where is_present = 'true' and measure_class = 'data' order by date_time_in", *conn);
+    QSqlQuery *query= new QSqlQuery ("select * from equipments where is_present = 'true' and measure_class = 'data'"
+                                     "and idd = (select idd from stations where is_present = 'true') order by date_time_in", *conn);
     qDebug() << "Devices have been added, status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
     query->first();
     QSqlRecord rec = query->record();
@@ -2281,6 +2329,16 @@ void processor::readSocketStatus()
 
         }
 
+        // IVTM data reading with gamma function as callback method meteo data filling
+
+        if (m_ivtm){
+
+            m_ivtm->doQuery( [this](const QString & _key, const float & _val){
+                this->m_meteo->push_data(_key, _val);
+                if (!this->m_meteo->sample_t )
+                    this->m_meteo->sample_t = 1;
+            });
+        }
     }
     //m_liga->getLastResult();
 
@@ -2515,3 +2573,4 @@ void processor::fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measu
     *_is_read = true;
 
 }
+

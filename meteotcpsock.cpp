@@ -107,7 +107,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _
     measure_prev->insert("temp_out", _out);
     measure_prev->insert("speed_wind", 0.0f);
     measure_prev->insert("dir_wind", 0.0f);
-      measure_prev->insert("dew_pt", 0.0f);
+    measure_prev->insert("dew_pt", 0.0f);
     measure_prev->insert("hum_out", 0.0f);
     measure_prev->insert("heat_indx", 0.0f);
     measure_prev->insert("chill_wind", 0.0f);
@@ -159,7 +159,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, QString 
     measure_prev->insert("temp_out", 0.0f);
     measure_prev->insert("speed_wind", 0.0f);
     measure_prev->insert("dir_wind", 0.0f);
-       measure_prev->insert("dew_pt", 0.0f);
+    measure_prev->insert("dew_pt", 0.0f);
     measure_prev->insert("hum_out", 0.0f);
     measure_prev->insert("heat_indx", 0.0f);
     measure_prev->insert("chill_wind", 0.0f);
@@ -214,7 +214,7 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port, float _
     measure_prev->insert("temp_out", _out);
     measure_prev->insert("speed_wind", 0.0f);
     measure_prev->insert("dir_wind", 0.0f);
-       measure_prev->insert("dew_pt", 0.0f);
+    measure_prev->insert("dew_pt", 0.0f);
     measure_prev->insert("hum_out", 0.0f);
     measure_prev->insert("heat_indx", 0.0f);
     measure_prev->insert("chill_wind", 0.0f);
@@ -772,5 +772,10 @@ float MeteoTcpSock::compare(float _in, float _prev, float coeff)
 
         return  _in;
     }
+}
+
+void MeteoTcpSock::push_data (const QString &_key, const float &_val)
+{
+    measure->insert(_key, _val);
 }
 #endif
