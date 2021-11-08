@@ -132,6 +132,8 @@ private:
     QMap<QString, int>   * m_range; //assosiative array of measurement equipments range
     QMap<QString, _status> * m_status; //assosiative array of measurements status
 
+    QMap<QString, QUuid>   * m_meteo_uuid; //assosiative array of meteo sensors uuid in main table
+    QMap<QString, QString>   * m_meteo_types; //and classmeasure (key) correspond typemeasure
     QMap<QString, QUuid>   * m_uuid; //assosiative array of sensors uuid
     //QList<int> *m_pool;
     QMap<int, int> *m_pool; //assosiative array of polling slave address - number of registers

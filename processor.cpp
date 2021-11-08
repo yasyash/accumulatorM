@@ -86,7 +86,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     if (_verbose > 0)
     {
         verbose = true;
-        qDebug () << "Fetcher version " <<  APP_VERSION;
+        qDebug () << "\n\r*************************************************\n\r            Fetcher version " <<  APP_VERSION << "\n\r*************************************************\n\r";
 
     }
     int _transactTime = cmdline_args.indexOf("-transtime");
@@ -101,7 +101,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     int _ver = cmdline_args.indexOf("-version");
     if (_ver > 0)
     {
-        qDebug () << "Fetcher version " <<  APP_VERSION;
+        qDebug () << "\n\r*************************************************\n\r            Fetcher version " <<  APP_VERSION << "\n\r*************************************************\n\r";
     }
 
     // UPS init
@@ -329,7 +329,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     m_transactTimer = new QTimer(this);
     connect( m_transactTimer, SIGNAL(timeout()), this, SLOT(transactionDB()));
 
-
+    m_meteo_uuid = new  QMap<QString, QUuid>;
+    m_meteo_types =  new QMap<QString, QString>;
     m_uuid = new  QMap<QString, QUuid>;
     m_data = new  QMap<QString, int>;
     m_measure =  new QMap<QString, int>;
@@ -608,7 +609,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
     //end of equipments init.
 
-    //timer initialization
+    //timers initialization
     m_renovateTimer->start(300000); // every 5 minutes we set all slave ID to active mode for polling despite of really state
 
     QString polltime = cmdline_args.value(cmdline_args.indexOf("-polltime") +1);
@@ -1871,11 +1872,19 @@ void processor::transactionDB(void)
             query.bindValue(":station", QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")));
             query.bindValue(":date_time", tmp_time);
 
+            QSqlQuery _query_ins;
+
+            _query_ins.prepare( "INSERT INTO sensors_data (idd, serialnum, date_time, typemeasure, measure, is_alert) "
+                                "VALUES (:idd, :serialnum, :date_time, :typemeasure, :measure, false)");
+            _query_ins.bindValue(":idd", QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")));
+            _query_ins.bindValue(":date_time", tmp_time);
+
             for (meteo_iterator = m_meteo->measure->begin(); meteo_iterator != m_meteo->measure->end(); ++meteo_iterator)
             {
+                float _sin_avrg, _cos_avrg, dir_angle;
+
                 if ((meteo_iterator.key() == "dir_wind")||(meteo_iterator.key() == "dir_wind_hi"))
                 {
-                    float _sin_avrg, _cos_avrg, dir_angle;
 
                     _sin_avrg = m_meteo->measure_dir_wind->value("dir_wind_sin") / m_meteo->sample_t;
                     _cos_avrg = m_meteo->measure_dir_wind->value("dir_wind_cos") / m_meteo->sample_t;
@@ -1896,15 +1905,40 @@ void processor::transactionDB(void)
 
 
                     query.bindValue(QString(":").append(meteo_iterator.key()), QString::number(double(dir_angle), 'f', 0));
-                    qDebug() << "Мeteo - "<< meteo_iterator.key() << " samles = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
+                    qDebug() << "Мeteo - "<< meteo_iterator.key() << " samples = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
 
                 }
                 else
                 {
-                    qDebug() << "Мeteo - "<< meteo_iterator.key() << " samles = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
+                    qDebug() << "Мeteo - "<< meteo_iterator.key() << " samples = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
                     query.bindValue(QString(":").append(meteo_iterator.key()), meteo_iterator.value()/m_meteo->sample_t);
                 }
 
+                if (!m_meteo_uuid->value((meteo_iterator.key())).isNull())
+                {
+                    _query_ins.bindValue(":serialnum",QString( m_meteo_uuid->value(meteo_iterator.key()).toString().remove(QRegExp("[\\{\\}]"))));
+                    _query_ins.bindValue(":measure", meteo_iterator.value()/m_meteo->sample_t);
+
+                    _query_ins.bindValue(":typemeasure",m_meteo_types->value(meteo_iterator.key()));
+
+                    if (verbose)
+                    {
+                        qDebug() << "Transaction status to the main data table with meteo parameter " << m_meteo_types->value(meteo_iterator.key()) <<" is "<< ((_query_ins.exec() == true) ? "successful!" :  "not complete!\n\r");
+                        qDebug() << "The last error is " << (( _query_ins.lastError().text().trimmed() == "") ? "absent" : _query_ins.lastError().text()) << "\n\r";
+                    }
+                    else
+                    {
+                        if (_query_ins.exec())
+                        {
+                            qDebug() << "Insertion to the  main data table with meteo parameter is successful!\n\r";
+                        }
+                        else
+                        {
+                            qDebug() << "Insertion to the  main data table with meteo parameter is not successful!\n\r";
+
+                        }
+                    }
+                }
             }
             if (!m_conn->isOpen())
                 m_conn->open();
@@ -2137,7 +2171,7 @@ void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
     //m_conn = conn;
     QSqlQuery *query= new QSqlQuery ("select * from equipments where is_present = 'true' and measure_class = 'data'"
                                      "and idd = (select idd from stations where is_present = 'true') order by date_time_in", *conn);
-    qDebug() << "Devices have been added, status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
+    qDebug() << "Try to add data UUID sensors... status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
     query->first();
     QSqlRecord rec = query->record();
 
@@ -2164,8 +2198,30 @@ void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
         query->next();
     }
     query->finish();
-    //    query->~QSqlQuery();
 
+    //meteo sensors UUID loading
+
+    *query=  QSqlQuery ("select * from equipments where is_present = 'true' and measure_class <> 'data' and measure_class <> 'alert'"
+                        "and idd = (select idd from stations where is_present = 'true') order by date_time_in", *conn);
+    rec.clear();
+
+    qDebug() << "Try to add UUID meteosensors... status is " <<   query->isActive() << " and err " << query->lastError().text() << "\n\r";
+
+    query->first();
+    rec = query->record();
+
+    for (int i = 0; i < query->size(); i++ )
+    {
+        qDebug() << query->value("typemeasure").toString() << "  -----  "<< query->value("serialnum").toUuid() <<"\n\r";
+
+        m_meteo_uuid->insert( query->value("measure_class").toString(), query->value("serialnum").toUuid());
+        m_meteo_types->insert(query->value("measure_class").toString(), query->value("typemeasure").toString());
+
+        query->next();
+    }
+
+    query->finish();
+    rec.clear();
 }
 
 void  processor::initStatus()
