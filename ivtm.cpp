@@ -12,9 +12,11 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the owner
- * www.cleenair.ru on e-mail: mail@ilit.ru
+ * License along with this library; if not, write to the Research Laboratory of IT
+ * www.ilit.ru on e-mail: mail@ilit.ru
+ * Also you сould open support domain www.cleenair.ru or write to e-mail: mail@cleenair.ru
  */
+
 
 #include "ivtm.h"
 

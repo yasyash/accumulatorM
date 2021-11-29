@@ -1,10 +1,10 @@
 /*
- * Copyright © 2018-2020 Yaroslav Shkliar <mail@ilit.ru>
+ * Copyright © 2020-2021 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3.0 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Research Laboratory of IT
  * www.ilit.ru on e-mail: mail@ilit.ru
+ * Also you сould open support domain www.cleenair.ru or write to e-mail: mail@cleenair.ru
  */
+
 #include "topasip.h"
 #include <stdlib.h>
 #include <QDebug>
@@ -42,10 +44,10 @@ TopasIP::TopasIP(QObject *parent , QString *ip, quint16 *port, QString *_serialn
     status = "";
     connected = m_sock->state();
 
-     sample_t->insert("PM", 0 );
-     sample_t->insert("PM1", 0 );
-     sample_t->insert("PM2.5", 0 );
-     sample_t->insert("PM10", 0 );
+    sample_t->insert("PM", 0 );
+    sample_t->insert("PM1", 0 );
+    sample_t->insert("PM2.5", 0 );
+    sample_t->insert("PM10", 0 );
 
 
 
@@ -95,11 +97,17 @@ void TopasIP::readData()
         measure->insert("PM2.5", 0);
         measure->insert("PM4", 0);
         measure->insert("PM10", 0);
+        measure->insert("TMP_PM", 0);
+        measure->insert("HUM_PM", 0);
+
 
         sample_t->insert("PM", 0 );
         sample_t->insert("PM1", 0 );
         sample_t->insert("PM2.5", 0 );
         sample_t->insert("PM10", 0 );
+        sample_t->insert("TMP_PM", 0 );
+        sample_t->insert("HUM_PM", 0 );
+
     }
 
     if ( i != -1){
@@ -114,8 +122,8 @@ void TopasIP::readData()
                 if (_status == '1')
                 {
                     //measure->insert("PM1", int(list.at(1).toFloat()*1000));
-                  //  measure->insert("PM2.5", int(list.at(2).toFloat()*1000));
-                  //  measure->insert("PM10", int(list.at(4).toFloat()*1000));
+                    //  measure->insert("PM2.5", int(list.at(2).toFloat()*1000));
+                    //  measure->insert("PM10", int(list.at(4).toFloat()*1000));
 
                     QByteArray _tsp = data.mid(11,4);
                     int __tsp = _tsp.toInt(nullptr,16);
@@ -126,17 +134,25 @@ void TopasIP::readData()
                     QByteArray _pm1 = data.mid(23,4);
                     int __pm1 = _pm1.toInt(nullptr,16);
 
-
+                    QByteArray _tmp = data.mid(27,4);
+                    int __tmp = _tmp.toInt(nullptr,16);
+                    QByteArray _hum = data.mid(31,4);
+                    int __hum = _hum.toInt(nullptr,16);
 
                     measure->insert("PM", float((__tsp*0.01 - 2.56)/100));
                     measure->insert("PM10", float((__pm10*0.01 - 2.56)/100));
                     measure->insert("PM2.5", float((__pm25*0.01 - 2.56))/1000);
                     measure->insert("PM1", float((__pm1*0.01 - 2.56))/1000);
+                    measure->insert("TMP_PM", float((__tmp*0.1 - 256)));
+                    measure->insert("HUM_PM", float((__hum*0.1 - 256)));
+
 
                     sample_t->insert("PM", sample_t->value("PM") + 1);
                     sample_t->insert("PM1", sample_t->value("PM1") + 1);
                     sample_t->insert("PM2.5", sample_t->value("PM2.5") + 1);
                     sample_t->insert("PM10", sample_t->value("PM10") + 1);
+                    sample_t->insert("TMP_PM", sample_t->value("TMP_PM") + 1);
+                    sample_t->insert("HUM_PM", sample_t->value("HUM_PM") + 1);
 
 
 

@@ -27,6 +27,7 @@
 #include <QUuid>
 #include <QVector>
 #include <QMetaEnum>
+#include <QThreadPool>
 
 #include "modbus.h"
 #include "modbusip.h"
@@ -41,6 +42,7 @@
 #include "topasip.h"
 #include "gammaet.h"
 #include "ivtm.h"
+#include "qcollectorc.h"
 
 #define ENUM_TO_STR(ENUM) QString(#ENUM)
 
@@ -151,6 +153,7 @@ private:
     int numCoils;
     int *m_transactTime;
     bool verbose; //verbose mode flag
+    bool ggo = false; //GGO transmition mode
 
     ups_status *m_ups = nullptr;   //member for UPS status
     QString m_ups_ip;
@@ -212,6 +215,8 @@ private:
     QString m_ssh_user;
     QString m_ssh_pwd;
     QString m_ssh_command;
+
+    QThreadPool *m_threadPool;
 
 private:
     void squeezeAlarmMsg();
