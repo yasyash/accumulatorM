@@ -1,10 +1,10 @@
 /*
- * Copyright © 2018-2019 Yaroslav Shkliar <mail@ilit.ru>
+ * Copyright © 2018-2021 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3.0 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Research Laboratory of IT
  * www.ilit.ru on e-mail: mail@ilit.ru
+ * Also you сould open support domain www.cleenair.ru or write to e-mail: mail@cleenair.ru
  */
+
 
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
@@ -70,7 +72,8 @@ public:
     virtual modbus_t*  modbus() { return m_serialModbus; }
 public:
 
-    enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, SAMPLE_FILL, ELECTRONIC_ZERO_ADJUST, INSTRUMENT_WARM_UP, UNKNOWN, ABSENT};
+    enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, SAMPLE_FILL, ELECTRONIC_ZERO_ADJUST, INSTRUMENT_WARM_UP, UNKNOWN, ABSENT,
+                 STANDBYORTEST, ZERO, SPAN, ZEROREF, SPANAUTO, INVALIDDATA};
     Q_ENUM(_status)
 
     static QMap<QString, int>   * ms_data; //assosiative array of polling data
@@ -86,6 +89,8 @@ public slots:
     {
         emit finished ();
     }
+
+    void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QString *__status); //for one status to all components
     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QMap<QString, _status> *_status); //sensor equipment type or name
     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample); //polymorphic method for instrument without status
     void fillSensorData( bool *_is_read, QMap<QString, float> *_measure); //polymorphic method for slow measuring

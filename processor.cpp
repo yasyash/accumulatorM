@@ -4,7 +4,7 @@
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * version 3.0 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Research Laboratory of IT
  * www.ilit.ru on e-mail: mail@ilit.ru
+ * Also you сould open support domain www.cleenair.ru or write to e-mail: mail@cleenair.ru
  */
+
 
 // -slaveid 1 3 11 12 15 -port /dev/ttyr00 -baud 9600 -data 8 -stop 1 -parity none -db weather -user weather -pwd 31415 -dustip 192.168.1.3 -dustport 3602 -alarmip 192.168.1.110 -alarmport 5555 -upsip 192.168.1.120 -upsport 3493 -upsuser liebert -meteoip 192.168.1.200 -meteoport 22222 -polltime 10 -verbose
 
@@ -109,7 +111,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     {
         m_transactTime =  new int;
         *m_transactTime = cmdline_args.value(cmdline_args.indexOf("-transtime") +1).toInt();
-        qDebug () << "Transaction in every" <<  *m_transactTime << "  seconds...";
+        qDebug () << "Transaction every" <<  *m_transactTime << "seconds...\n\r";
         
     }
     
@@ -147,8 +149,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     
     //ENVEA group init
     //SO2
-    if (cmdline_args.indexOf("-enveaip_so2")>-1)
-        m_envea_ip_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaip_so2") +1);
+    if (cmdline_args.indexOf("-enveaipso2")>-1)
+        m_envea_ip_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaipso2") +1);
 
     if (m_envea_ip_so2 == "")
     {
@@ -156,14 +158,14 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaport_so2") +1).toUShort();
+        m_envea_port_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaportso2") +1).toUShort();
         if (m_envea_port_so2 <= 0)
         {
             qDebug ("ENVEA equipment for SO2 port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaname_so2") +1);
+            m_envea_name_so2 = cmdline_args.value(cmdline_args.indexOf("-enveanameso2") +1);
             if (m_envea_name_so2 == "")
             {
                 qDebug ("ENVEA equipment for SO2 the MODE 4 name error:  expected parameter\n\r");
@@ -174,13 +176,16 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 m_envea_so2->sync();
                 m_envea_so2->standby();
                 m_envea_so2->start();
+                connect(m_envea_so2, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_so2->verbose = true;
             }
         }
     }
 
     //SO2 + H2S
-    if (cmdline_args.indexOf("-enveaip_so2_h2s")>-1)
-        m_envea_ip_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaip_so2_h2s") +1);
+    if (cmdline_args.indexOf("-enveaipso2h2s")>-1)
+        m_envea_ip_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaipso2h2s") +1);
 
     if (m_envea_ip_so2_h2s == "")
     {
@@ -188,14 +193,14 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaport_so2_h2s") +1).toUShort();
+        m_envea_port_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaportso2h2s") +1).toUShort();
         if (m_envea_port_so2_h2s <= 0)
         {
             qDebug ("ENVEA equipment for SO2 + H2S port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaname_so2_h2s") +1);
+            m_envea_name_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveanameso2h2s") +1);
             if (m_envea_name_so2_h2s == "")
             {
                 qDebug ("ENVEA equipment for SO2 + H2S the MODE 4 name error:  expected parameter\n\r");
@@ -206,14 +211,17 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 m_envea_so2_h2s->sync();
                 m_envea_so2_h2s->standby();
                 m_envea_so2_h2s->start();
+                connect(m_envea_so2_h2s, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_so2_h2s->verbose = true;
             }
         }
     }
 
     //NOx
 
-    if (cmdline_args.indexOf("-enveaip_nox")>-1)
-        m_envea_ip_nox = cmdline_args.value(cmdline_args.indexOf("-enveaip_nox") +1);
+    if (cmdline_args.indexOf("-enveaipnox")>-1)
+        m_envea_ip_nox = cmdline_args.value(cmdline_args.indexOf("-enveaipnox") +1);
 
     if (m_envea_ip_nox == "")
     {
@@ -221,14 +229,14 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_nox = cmdline_args.value(cmdline_args.indexOf("-enveaport_nox") +1).toUShort();
+        m_envea_port_nox = cmdline_args.value(cmdline_args.indexOf("-enveaportnox") +1).toUShort();
         if (m_envea_port_nox <= 0)
         {
             qDebug ("ENVEA equipment for NOx port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_nox = cmdline_args.value(cmdline_args.indexOf("-enveaname_nox") +1);
+            m_envea_name_nox = cmdline_args.value(cmdline_args.indexOf("-enveanamenox") +1);
             if (m_envea_name_nox == "")
             {
                 qDebug ("ENVEA equipment for NOx the MODE 4 name error:  expected parameter\n\r");
@@ -239,14 +247,17 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 m_envea_nox->sync();
                 m_envea_nox->standby();
                 m_envea_nox->start();
+                connect(m_envea_nox, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_nox->verbose = true;
             }
         }
     }
 
     //NOx + NH3
 
-    if (cmdline_args.indexOf("-enveaip_nox_nh3")>-1)
-        m_envea_ip_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaip_nox_nh3") +1);
+    if (cmdline_args.indexOf("-enveaipnoxnh3")>-1)
+        m_envea_ip_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaipnoxnh3") +1);
 
     if (m_envea_ip_nox_nh3 == "")
     {
@@ -254,14 +265,14 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaport_nox_nh3") +1).toUShort();
+        m_envea_port_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaportnoxnh3") +1).toUShort();
         if (m_envea_port_nox_nh3 <= 0)
         {
             qDebug ("ENVEA equipment for NOx + NH3 port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaname_nox_nh3") +1);
+            m_envea_name_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveanamenoxnh3") +1);
             if (m_envea_name_nox_nh3 == "")
             {
                 qDebug ("ENVEA equipment for NOx + NH3 the MODE 4 name error:  expected parameter\n\r");
@@ -272,6 +283,9 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                 m_envea_nox_nh3->sync();
                 m_envea_nox_nh3->standby();
                 m_envea_nox_nh3->start();
+                connect(m_envea_nox_nh3, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_nox_nh3->verbose = true;
             }
         }
     }
@@ -1851,8 +1865,7 @@ void processor::renovateSlaveID( void )
             QString _serialnum = m_topasip->serialnum;
             m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &_serialnum);
             if (m_topasip){
-                connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
-                
+                 connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
             }
         }
     }
@@ -1865,6 +1878,9 @@ void processor::renovateSlaveID( void )
                 m_envea_so2->~enveas();
                 m_envea_so2 = new enveas(this, &m_envea_ip_so2, &m_envea_port_so2, &m_envea_name_so2, enveas::SO2);
                 m_envea_so2->start();
+                connect(m_envea_so2, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_so2->verbose = true;
             }
         }
     }
@@ -1877,6 +1893,9 @@ void processor::renovateSlaveID( void )
                 m_envea_so2_h2s->~enveas();
                 m_envea_so2_h2s = new enveas(this, &m_envea_ip_so2_h2s, &m_envea_port_so2_h2s, &m_envea_name_so2_h2s, enveas::SO2_H2S);
                 m_envea_so2_h2s->start();
+                connect(m_envea_so2_h2s, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_so2_h2s->verbose = true;
             }
         }
     }
@@ -1889,6 +1908,9 @@ void processor::renovateSlaveID( void )
                 m_envea_nox->~enveas();
                 m_envea_nox = new enveas(this, &m_envea_ip_nox, &m_envea_port_nox, &m_envea_name_nox, enveas::NOx);
                 m_envea_nox->start();
+                connect(m_envea_nox, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_nox->verbose = true;
             }
         }
     }
@@ -1901,6 +1923,9 @@ void processor::renovateSlaveID( void )
                 m_envea_nox_nh3->~enveas();
                 m_envea_nox_nh3 = new enveas(this, &m_envea_ip_nox_nh3, &m_envea_port_nox_nh3, &m_envea_name_nox_nh3, enveas::NOx_NH3);
                 m_envea_nox_nh3->start();
+                connect(m_envea_nox_nh3, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_nox_nh3->verbose = true;
             }
         }
     }
@@ -2536,8 +2561,10 @@ void  processor::initStatus()
     
     if (m_serinus50)
         m_status->insert("SO2", UNKNOWN);
+
     if (m_serinus55)
         m_status->insert("H2S", UNKNOWN);
+
     if (m_serinus){
         m_status->insert("SO2", UNKNOWN);
         m_status->insert("H2S", UNKNOWN);
@@ -2555,6 +2582,7 @@ void  processor::initStatus()
         m_status->insert("стирол", UNKNOWN);
         m_status->insert("фенол", UNKNOWN);
     }
+
     if (m_ups){
         m_status->insert("Напряжение мин.", UNKNOWN);
         m_status->insert("Напряжение макс.", UNKNOWN);
@@ -2578,6 +2606,30 @@ void  processor::initStatus()
         m_status->insert("HCH", UNKNOWN);
         m_status->insert("CH4", UNKNOWN);
     }
+
+    //ENVEA
+    if (m_envea_nox)
+    {
+        m_status->insert("NO2", UNKNOWN);
+        m_status->insert("NO", UNKNOWN);
+        m_status->insert("NH3", UNKNOWN);
+        m_status->insert("NOx", UNKNOWN);
+    }
+
+    if (m_envea_so2)
+        m_status->insert("SO2", UNKNOWN);
+
+    if (m_envea_nox_nh3)
+    {
+        m_status->insert("SO2", UNKNOWN);
+    }
+
+    if (m_envea_so2_h2s)
+    {
+        m_status->insert("SO2", UNKNOWN);
+        m_status->insert("H2S", UNKNOWN);
+    }
+
 }
 
 //Read the status of devices that are connected via TCP
@@ -2809,6 +2861,35 @@ void processor::readSocketStatus()
     }
 }
 
+void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QString *__status)
+{
+    QMap<QString, float>::iterator sensor;
+
+    QString status_local = *__status;
+
+    for (sensor = _measure->begin(); sensor != _measure->end(); ++sensor)
+    {
+        if (_sample->value(sensor.key())>0)
+        {
+            m_data->insert(sensor.key(), int(_measure->value(sensor.key()) *m_range->value(sensor.key())) + m_data->value(sensor.key()));
+            m_measure->insert(sensor.key(), m_measure->value(sensor.key()) + _sample->value(sensor.key()));
+
+            QMetaObject metaObject = processor::staticMetaObject;
+            QMetaEnum metaEnum = metaObject.enumerator(metaObject.indexOfEnumerator("_status"));
+
+            _status enumValue = static_cast<_status>(metaEnum.keyToValue(status_local.toLatin1()));
+
+            m_status->insert(sensor.key(), enumValue);
+
+            _measure->insert(sensor.key(), 0 );
+            _sample->insert(sensor.key(), 0);
+        }
+
+    }
+    *_is_read = true;
+
+}
+
 void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QMap<QString, _status> *_status)
 {
     QMap<QString, float>::iterator sensor;
@@ -2823,7 +2904,8 @@ void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, 
             m_measure->insert(sensor.key(), m_measure->value(sensor.key()) + _sample->value(sensor.key()));
             m_status->insert(sensor.key(), _status->value(sensor.key()));
             
-            
+          //  _measure->insert(sensor.key(), 0 );
+           // _sample->insert(sensor.key(), 0);
         }
         
     }
@@ -2880,7 +2962,7 @@ void processor::static_fillSensorData(bool *_is_read, QMap<QString, float> *_mea
         ms_data->insert(sensor.key(),  ms_data->value(sensor.key()) + int(_measure->value(sensor.key()) *ms_range->value(sensor.key())) );
         ms_measure->insert(sensor.key(), ms_measure->value(sensor.key()) + 1);
         _measure->insert(sensor.key(), 0 );
-        _measure->insert(sensor.key(), 0);
+        _sample->insert(sensor.key(), 0);
     }
     *_is_read = true;
     
