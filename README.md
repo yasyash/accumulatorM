@@ -34,7 +34,8 @@ FEBA (JSC CIIK) - RF;
 Serinus models by Ecotech Pty Ltd - Australia;
 Grimm GmbH & Co Kr - Germany;
 Turnkey tools - UK;
-TSI Corp. - USA.
+TSI Corp. - USA;
+Environment ENVEA models - France.
 
 Meteocomplexes:
 

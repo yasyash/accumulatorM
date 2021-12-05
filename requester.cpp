@@ -76,12 +76,12 @@ void Requester::sendRequest(const QString &apiStr,
 void Requester::sendRequest(const handleFuncExt &funcSuccess,
                             const handleFuncExt &funcError,
                             Requester::Type type,
-                             QHttpMultiPart *data,
+                            QHttpMultiPart *data,
                             const QString uri,
                             const QDateTime &_date_time,
-                           const  QDateTime &_last_time,
+                            const  QDateTime &_last_time,
                             const int &_msg_id,
-                             QSqlDatabase * m_conn,
+                            QSqlDatabase * m_conn,
                             const QString &idd)
 {
     QNetworkRequest request = createRequest(QByteArray("multipart/form-data; boundary=---"));
@@ -100,7 +100,7 @@ void Requester::sendRequest(const handleFuncExt &funcSuccess,
         reply = nullptr;
         Q_ASSERT(false);
     }
-        connect(reply, &QNetworkReply::finished, this,
+    connect(reply, &QNetworkReply::finished, this,
             [this, funcSuccess, funcError, reply, &_event_loop, uri, _date_time, _last_time, _msg_id, m_conn, idd]() {
         QJsonObject obj = parseReply(reply);
         if (onFinishRequest(reply)) {

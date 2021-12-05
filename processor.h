@@ -43,6 +43,7 @@
 #include "gammaet.h"
 #include "ivtm.h"
 #include "qcollectorc.h"
+#include "enveas.h"
 
 #define ENUM_TO_STR(ENUM) QString(#ENUM)
 
@@ -110,6 +111,27 @@ private slots:
 private:
 
     modbus_t * m_serialModbus  = nullptr;
+
+    enveas *m_envea_so2 = nullptr;
+    QString m_envea_ip_so2;
+    quint16 m_envea_port_so2;
+    QString m_envea_name_so2;
+
+
+    enveas *m_envea_so2_h2s = nullptr;
+    QString m_envea_ip_so2_h2s;
+    quint16 m_envea_port_so2_h2s;
+    QString m_envea_name_so2_h2s;
+
+    enveas *m_envea_nox = nullptr;
+    QString m_envea_ip_nox;
+    quint16 m_envea_port_nox;
+    QString m_envea_name_nox;
+
+    enveas *m_envea_nox_nh3 = nullptr;
+    QString m_envea_ip_nox_nh3;
+    quint16 m_envea_port_nox_nh3;
+    QString m_envea_name_nox_nh3;
 
     ivtm *m_ivtm = nullptr;
     QString m_ivtm_ip;
@@ -217,6 +239,7 @@ private:
     QString m_ssh_command;
 
     QThreadPool *m_threadPool;
+    QThreadPool *m_threadPoolSlowProcess;
 
 private:
     void squeezeAlarmMsg();

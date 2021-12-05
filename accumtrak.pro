@@ -3,7 +3,7 @@ QT += core sql network concurrent serialport serialbus
 QT -= gui
 
 TEMPLATE = app
-VERSION = 3.20
+VERSION = 3.3
 
 TARGET = accumtrak
 
@@ -42,7 +42,8 @@ SOURCES += \
     qsshsocket.cpp \
     ivtm.cpp \
     qcollectorc.cpp \
-    requester.cpp
+    requester.cpp \
+    enveas.cpp
 
 
 
@@ -73,7 +74,8 @@ HEADERS +=\
     qsshsocket.h \
     ivtm.h \
     qcollectorc.h \
-    requester.h
+    requester.h \
+    enveas.h
 
 
 

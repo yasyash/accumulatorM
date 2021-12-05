@@ -85,6 +85,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     m_threadPool = new QThreadPool();
     m_threadPool->setMaxThreadCount(1);
     
+    m_threadPoolSlowProcess = new QThreadPool();
+
     int _verbose = cmdline_args.indexOf("-verbose");
     if (_verbose > 0)
     {
@@ -143,6 +145,137 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         }
     }
     
+    //ENVEA group init
+    //SO2
+    if (cmdline_args.indexOf("-enveaip_so2")>-1)
+        m_envea_ip_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaip_so2") +1);
+
+    if (m_envea_ip_so2 == "")
+    {
+        qDebug ( "IP address of ENVEA equipment for SO2 is not set.\n\r");
+    }
+    else
+    {
+        m_envea_port_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaport_so2") +1).toUShort();
+        if (m_envea_port_so2 <= 0)
+        {
+            qDebug ("ENVEA equipment for SO2 port error:  expected parameter\n\r");
+        }
+        else
+        {
+            m_envea_name_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaname_so2") +1);
+            if (m_envea_name_so2 == "")
+            {
+                qDebug ("ENVEA equipment for SO2 the MODE 4 name error:  expected parameter\n\r");
+            }
+            else
+            {
+                m_envea_so2 = new enveas(this, &m_envea_ip_so2, &m_envea_port_so2, &m_envea_name_so2, enveas::SO2);
+                m_envea_so2->sync();
+                m_envea_so2->standby();
+                m_envea_so2->start();
+            }
+        }
+    }
+
+    //SO2 + H2S
+    if (cmdline_args.indexOf("-enveaip_so2_h2s")>-1)
+        m_envea_ip_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaip_so2_h2s") +1);
+
+    if (m_envea_ip_so2_h2s == "")
+    {
+        qDebug ( "IP address of ENVEA equipment for SO2 + H2S is not set.\n\r");
+    }
+    else
+    {
+        m_envea_port_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaport_so2_h2s") +1).toUShort();
+        if (m_envea_port_so2_h2s <= 0)
+        {
+            qDebug ("ENVEA equipment for SO2 + H2S port error:  expected parameter\n\r");
+        }
+        else
+        {
+            m_envea_name_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaname_so2_h2s") +1);
+            if (m_envea_name_so2_h2s == "")
+            {
+                qDebug ("ENVEA equipment for SO2 + H2S the MODE 4 name error:  expected parameter\n\r");
+            }
+            else
+            {
+                m_envea_so2_h2s = new enveas(this, &m_envea_ip_so2_h2s, &m_envea_port_so2_h2s, &m_envea_name_so2_h2s, enveas::SO2_H2S);
+                m_envea_so2_h2s->sync();
+                m_envea_so2_h2s->standby();
+                m_envea_so2_h2s->start();
+            }
+        }
+    }
+
+    //NOx
+
+    if (cmdline_args.indexOf("-enveaip_nox")>-1)
+        m_envea_ip_nox = cmdline_args.value(cmdline_args.indexOf("-enveaip_nox") +1);
+
+    if (m_envea_ip_nox == "")
+    {
+        qDebug ( "IP address of ENVEA equipment for NOx is not set.\n\r");
+    }
+    else
+    {
+        m_envea_port_nox = cmdline_args.value(cmdline_args.indexOf("-enveaport_nox") +1).toUShort();
+        if (m_envea_port_nox <= 0)
+        {
+            qDebug ("ENVEA equipment for NOx port error:  expected parameter\n\r");
+        }
+        else
+        {
+            m_envea_name_nox = cmdline_args.value(cmdline_args.indexOf("-enveaname_nox") +1);
+            if (m_envea_name_nox == "")
+            {
+                qDebug ("ENVEA equipment for NOx the MODE 4 name error:  expected parameter\n\r");
+            }
+            else
+            {
+                m_envea_nox = new enveas(this, &m_envea_ip_nox, &m_envea_port_nox, &m_envea_name_nox, enveas::NOx);
+                m_envea_nox->sync();
+                m_envea_nox->standby();
+                m_envea_nox->start();
+            }
+        }
+    }
+
+    //NOx + NH3
+
+    if (cmdline_args.indexOf("-enveaip_nox_nh3")>-1)
+        m_envea_ip_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaip_nox_nh3") +1);
+
+    if (m_envea_ip_nox_nh3 == "")
+    {
+        qDebug ( "IP address of ENVEA equipment for NOx + NH3 is not set.\n\r");
+    }
+    else
+    {
+        m_envea_port_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaport_nox_nh3") +1).toUShort();
+        if (m_envea_port_nox_nh3 <= 0)
+        {
+            qDebug ("ENVEA equipment for NOx + NH3 port error:  expected parameter\n\r");
+        }
+        else
+        {
+            m_envea_name_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaname_nox_nh3") +1);
+            if (m_envea_name_nox_nh3 == "")
+            {
+                qDebug ("ENVEA equipment for NOx + NH3 the MODE 4 name error:  expected parameter\n\r");
+            }
+            else
+            {
+                m_envea_nox_nh3 = new enveas(this, &m_envea_ip_nox_nh3, &m_envea_port_nox_nh3, &m_envea_name_nox_nh3, enveas::NOx_NH3);
+                m_envea_nox_nh3->sync();
+                m_envea_nox_nh3->standby();
+                m_envea_nox_nh3->start();
+            }
+        }
+    }
+
     //IVTM init
     if (cmdline_args.indexOf("-ivtmip")>-1)
         m_ivtm_ip = cmdline_args.value(cmdline_args.indexOf("-ivtmip") +1);
@@ -931,6 +1064,7 @@ processor::~processor()
         m_serialModbus = NULL;
     }
     delete m_threadPool;
+    delete  m_threadPoolSlowProcess;
 }
 
 void processor::releaseModbus()
@@ -1703,20 +1837,10 @@ void processor::renovateSlaveID( void )
         }
     }
     
-    // if (!m_grimm->connected)
-    // {
+
     if (m_grimm)
         m_grimm->reOpen(&m_grimm_ip, &m_grimmport);
-    //- if ( (m_grimmport > 0) ){
-    
-    //  -   m_grimm->reOpen();
-    //m_grimm->~Grimm();
-    //m_grimm = new Grimm(this, &m_grimmport);
-    //connect(m_grimm, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
-    
-    
-    //  }
-    //}
+
     if (m_topasip)
     {
         if (!m_topasip->connected)
@@ -1729,6 +1853,54 @@ void processor::renovateSlaveID( void )
             if (m_topasip){
                 connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
                 
+            }
+        }
+    }
+
+    if (m_envea_so2){
+        if (!m_envea_so2->connected)
+        {
+            if ( (m_envea_ip_so2 != "") && (m_envea_port_so2 >0)){
+
+                m_envea_so2->~enveas();
+                m_envea_so2 = new enveas(this, &m_envea_ip_so2, &m_envea_port_so2, &m_envea_name_so2, enveas::SO2);
+                m_envea_so2->start();
+            }
+        }
+    }
+
+    if (m_envea_so2_h2s){
+        if (!m_envea_so2_h2s->connected)
+        {
+            if ( (m_envea_ip_so2_h2s != "") && (m_envea_port_so2_h2s >0)){
+
+                m_envea_so2_h2s->~enveas();
+                m_envea_so2_h2s = new enveas(this, &m_envea_ip_so2_h2s, &m_envea_port_so2_h2s, &m_envea_name_so2_h2s, enveas::SO2_H2S);
+                m_envea_so2_h2s->start();
+            }
+        }
+    }
+
+    if (m_envea_nox){
+        if (!m_envea_nox->connected)
+        {
+            if ( (m_envea_ip_nox != "") && (m_envea_port_nox >0)){
+
+                m_envea_nox->~enveas();
+                m_envea_nox = new enveas(this, &m_envea_ip_nox, &m_envea_port_nox, &m_envea_name_nox, enveas::NOx);
+                m_envea_nox->start();
+            }
+        }
+    }
+
+    if (m_envea_nox_nh3){
+        if (!m_envea_nox_nh3->connected)
+        {
+            if ( (m_envea_ip_nox_nh3 != "") && (m_envea_port_nox_nh3 >0)){
+
+                m_envea_nox_nh3->~enveas();
+                m_envea_nox_nh3 = new enveas(this, &m_envea_ip_nox_nh3, &m_envea_port_nox_nh3, &m_envea_name_nox_nh3, enveas::NOx_NH3);
+                m_envea_nox_nh3->start();
             }
         }
     }
@@ -2429,8 +2601,10 @@ void processor::readSocketStatus()
         for (slave = m_pool->begin(); slave != m_pool->end(); ++slave)
         {
             //tmp_type_measure.clear();
-            m_modbusip->sendData(slave.key(), slave.value());
-            
+            //m_modbusip->sendData(slave.key(), slave.value());
+            m_modbusip->m_address = slave.key();
+            m_modbusip->m_registers = slave.value();
+            m_threadPoolSlowProcess->start(m_modbusip);
         }
     }
     
@@ -2614,6 +2788,25 @@ void processor::readSocketStatus()
         //m_topasip->readSample();
     }
     
+    if (m_envea_so2)
+    {
+        m_envea_so2->readGases(1);
+    }
+
+    if (m_envea_so2_h2s)
+    {
+        m_envea_so2_h2s->readGases(1);
+    }
+
+    if (m_envea_nox)
+    {
+        m_envea_nox->readGases(1);
+    }
+
+    if (m_envea_nox_nh3)
+    {
+        m_envea_nox_nh3->readGases(1);
+    }
 }
 
 void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QMap<QString, _status> *_status)

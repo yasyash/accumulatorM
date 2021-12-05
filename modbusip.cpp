@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2018-2019 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
@@ -19,6 +19,9 @@
 #include <stdlib.h>
 #include <QDebug>
 #include <QThread>
+#include <QEventLoop>
+#include <QTimer>
+
 #ifdef MODBUSIP_H
 ModbusIP::ModbusIP(QObject *parent , QString *ip, quint16 *port) : QObject (parent)
 {
@@ -35,6 +38,9 @@ ModbusIP::ModbusIP(QObject *parent , QString *ip, quint16 *port) : QObject (pare
     m_sock->setSocketOption(QAbstractSocket::TypeOfServiceOption, 64);
     measure = new  QMap<QString, int>;
     sample_t = new QMap<QString, int>;
+
+    m_address = 0;
+    m_registers = 0;
     /*   measure->insert("CO", 0);
     measure->insert("NO2", 0);
     measure->insert("NO", 0);
@@ -73,6 +79,9 @@ ModbusIP::ModbusIP(QObject *parent , QString *ip, quint16 *port, int type) : QOb
     m_sock->setSocketOption(QAbstractSocket::TypeOfServiceOption, 64);
     measure = new  QMap<QString, int>;
     sample_t = new QMap<QString, int>;
+
+    m_address = 0;
+    m_registers = 0;
     /*   measure->insert("CO", 0);
     measure->insert("NO2", 0);
     measure->insert("NO", 0);
@@ -272,7 +281,13 @@ void ModbusIP::displayError(QAbstractSocket::SocketError socketError)
         m_sock->close();
     connected = m_sock->state();
 }
-void ModbusIP::sendData(int address, int registers)
+
+void ModbusIP::run()
+{
+    sendData();
+}
+
+void ModbusIP::sendData(int &address, int &registers)
 {
     /*  int checksum =  0; //id = 0
     checksum = checksum ^ command ^ data->length() ^ data->at(0) ^ data->at(1);
@@ -318,10 +333,70 @@ void ModbusIP::sendData(int address, int registers)
         qint64 lnt = ba.size();//qint64(strlen(str));
         lnt = m_sock->write(ba, lnt);
         lnt = m_sock->flush();
+
+        //QEventLoop _loop;
+        //QTimer::singleShot(500, &_loop, SLOT(quit()));
+        //_loop.exec();
         QThread::msleep(500);
         qDebug()<< "\n\ModbusIP command: " << ba <<"\n\r" ;
     }
 }
+
+void ModbusIP::sendData()
+{
+    if (m_address && m_registers)
+    {
+        QByteArray ba, _ba;
+        QString _str, _str1;
+        QChar _ch;
+        int hi;
+        int low;
+        int sum = 0;
+        for (int i = 1; i < m_registers; i+=2)
+        {
+            hi = int(m_address / 10);
+            low = m_address - hi;
+            _ch =  QChar(toAscii(&hi));
+            ba.resize(17);
+            ba[0] = 58; //:
+            ba[1] = _ch.toLatin1() ; //0 hi
+            _ch =  QChar(toAscii(&low));
+            ba[2] = _ch.toLatin1();//3 addr low
+            ba[3] = 48;//0
+            ba[4] = 51;//3 func
+            ba[5] = 48;//0
+            ba[6] = 48;//0
+            ba[7] = 48;//0
+            _ch =  QChar(toAscii(&i));
+            ba[8] = _ch.toLatin1();//from reg
+            ba[9] = 48;
+            ba[10] = 48;
+            ba[11] = 48;
+            ba[12] = 50;//2 -  amount of registers
+            sum = 256 - (hi +low + 3 + i + 2); //LRC code
+            hi = int(sum / 16);
+            low = sum - hi*16;
+            _ch =  QChar(toAscii(&hi));
+            ba[13] = _ch.toLatin1();
+            _ch =  QChar(toAscii(&low));
+            ba[14] = _ch.toLatin1();
+            ba[15] = 13;
+            ba[16] = 10;
+            qint64 lnt = ba.size();//qint64(strlen(str));
+            lnt = m_sock->write(ba, lnt);
+            lnt = m_sock->flush();
+
+           // QEventLoop _loop;
+           // QTimer::singleShot(500, &_loop, SLOT(quit()));
+            //_loop.exec();
+            QThread::msleep(500);
+            qDebug()<< "\n\ModbusIP command: " << ba <<"\n\r" ;
+        }
+        m_address = 0;
+        m_registers = 0;
+    }
+}
+
 int ModbusIP::toAscii(int *_ch)
 {
     if (*_ch == 0)

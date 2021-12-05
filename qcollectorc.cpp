@@ -224,7 +224,7 @@ void qcollectorc::run ()
 
                 _req->initRequester(m_uri,443, nullptr);
 
-                QHttpMultiPart *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+                QHttpMultiPart multiPart;
                 QHttpPart _http_form;
                 QByteArray _body_tmp;
 
@@ -233,15 +233,14 @@ void qcollectorc::run ()
                 QJsonObject _header = {{"token", m_token},{"message",QString().number( (m_msg_id_out+=1))},{"locality", m_locality},{"object", m_code},{"date_time", _now.toString("yyyy-MM-dd HH:mm:ss").append(QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 ))))},
                                        {"params", _params}};
 
-                QJsonDocument doc(_header);
-                _body_tmp = doc.toJson();
+                QJsonDocument doc = QJsonDocument(_header);
+                _body_tmp = doc.toJson(QJsonDocument::Compact);
 
 
                 _http_form.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data;  name=\"data\""));
                 _http_form.setBody(_body_tmp);
-
-                multiPart->append(_http_form);
-                multiPart->setBoundary("---");
+                multiPart.append(_http_form);
+                multiPart.setBoundary("---");
 
                 //try to send request
                 //void (qcollectorc::*funcS)(const QJsonObject &, const QString &, const QDateTime &, const QDateTime &, const int &,  QSqlDatabase *, const QString &);
@@ -250,7 +249,7 @@ void qcollectorc::run ()
                 // funcE = &qcollectorc::funcError;
                 // funcS = &qcollectorc::funcSuccess;
 
-                _req->sendRequest(funcSuccess, funcError, Requester::Type::POST, multiPart, m_uri, _now, _from_t_local, m_msg_id_out, m_conn, m_idd);
+                _req->sendRequest(funcSuccess, funcError, Requester::Type::POST, &multiPart, m_uri, _now, _from_t_local, m_msg_id_out, m_conn, m_idd);
 
             }
             query_eq->exec();

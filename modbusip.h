@@ -22,19 +22,21 @@
 
 #include <QUdpSocket>
 #include <QTcpSocket>
+#include <QRunnable>
 
-
-class ModbusIP : public QObject
+class ModbusIP : public QObject, public QRunnable
 {
     Q_OBJECT
 
 public:
     ModbusIP(QObject *parent, QString *ip, quint16 *port);
     ModbusIP(QObject *parent, QString *ip, quint16 *port, int type);
+    void run ();
 
     virtual ~ModbusIP();
     int toAscii(int *_ch);
-    void sendData(int address, int registers);
+    void sendData(int &address, int &registers);
+    void sendData(); //for use to sending in a separate thread
 
 protected:
     void changeInterface(const QString& address, quint16 portNbr);
@@ -68,6 +70,8 @@ public:
     enum _command last_command;
     QAbstractSocket::SocketState connected = QAbstractSocket::UnconnectedState;
     // QDataStream *in_stream;
+    int m_address;
+    int m_registers;
 
 signals:
     void tcpPortActive(bool val);
