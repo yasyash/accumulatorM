@@ -1,7 +1,7 @@
 Modbus & TCP Data Fetcher extend modification
 ==========
 Copyright (c) 2019-2021 Yaroslav Shkliar
-Copyright (c) 2018-2020 ILIT.RU, Research IT Laboratory 
+Copyright (c) 2018-2019 ILIT.RU, Research IT Laboratory 
 
 http://www.cleenair.ru
 
@@ -20,7 +20,7 @@ Modbus & TCP Data Fetcher?
 ----------------
 
 Modbus & TCP Data Fetcher is a free Qt-based implementation of application wich oriented on ecological acquisition equipments.
-This program tested with MOXA 5150, 5450 series devices Nport interaction in RealCom and TCP Server modes. Data Fetcher allow to collect measurements to postgresql DB and to edit it in interactive mode.
+This program tested with MOXA 5xxx series, PPDS-7xx-MTCP series devices Nport interaction in RealCom and TCP Server modes. Data Fetcher allow to collect measurements to postgresql DB and to edit it in interactive mode.
 
 
 Supported equipments
