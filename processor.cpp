@@ -87,7 +87,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     m_threadPool = new QThreadPool();
     m_threadPool->setMaxThreadCount(1);
     
-    m_threadPoolSlowProcess = new QThreadPool();
+    //m_threadPoolSlowProcess = new QThreadPool();
 
     int _verbose = cmdline_args.indexOf("-verbose");
     if (_verbose > 0)
@@ -1078,7 +1078,7 @@ processor::~processor()
         m_serialModbus = NULL;
     }
     delete m_threadPool;
-    delete  m_threadPoolSlowProcess;
+    //delete  m_threadPoolSlowProcess;
 }
 
 void processor::releaseModbus()
@@ -2653,10 +2653,12 @@ void processor::readSocketStatus()
         for (slave = m_pool->begin(); slave != m_pool->end(); ++slave)
         {
             //tmp_type_measure.clear();
-            //m_modbusip->sendData(slave.key(), slave.value());
-            m_modbusip->m_address = slave.key();
-            m_modbusip->m_registers = slave.value();
-            m_threadPoolSlowProcess->start(m_modbusip);
+            int _key = slave.key();
+            int _reg = slave.value();
+            m_modbusip->sendData( _key, _reg);
+            //m_modbusip->m_address = slave.key();
+            //m_modbusip->m_registers = slave.value();
+            //m_threadPoolSlowProcess->start(m_modbusip);
         }
     }
     

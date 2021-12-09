@@ -244,7 +244,7 @@ private:
     QString m_ssh_command;
 
     QThreadPool *m_threadPool;
-    QThreadPool *m_threadPoolSlowProcess;
+    //QThreadPool *m_threadPoolSlowProcess;
 
 private:
     void squeezeAlarmMsg();

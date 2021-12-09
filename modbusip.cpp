@@ -334,9 +334,6 @@ void ModbusIP::sendData(int &address, int &registers)
         lnt = m_sock->write(ba, lnt);
         lnt = m_sock->flush();
 
-        //QEventLoop _loop;
-        //QTimer::singleShot(500, &_loop, SLOT(quit()));
-        //_loop.exec();
         QThread::msleep(500);
         qDebug()<< "\n\ModbusIP command: " << ba <<"\n\r" ;
     }
