@@ -97,7 +97,6 @@ enveas::enveas(QObject *parent, QString *ip, quint16 *port, QString *name, int _
         break;
     case H2S:
         measure->insert("H2S", 0);
-
         sample_t->insert("H2S", 0);
 
         break;
@@ -129,7 +128,6 @@ enveas::enveas(QObject *parent, QString *ip, quint16 *port, QString *name, int _
     case CO:
 
         measure ->insert("CO", 0);
-
         sample_t->insert("CO", 0);
 
         break;
@@ -152,7 +150,7 @@ enveas::enveas(QObject *parent, QString *ip, quint16 *port, QString *name, int _
     default:
         break;
     }
-    qDebug() << "The Envea " << *name <<" measure equipment handling has been initialized.";
+    qDebug() << "The Envea " << QVariant::fromValue(type).toString() <<" measure equipment handling has been initialized.";
 
 }
 
@@ -194,7 +192,8 @@ void enveas::readData()
 {
     QStringList list;
     int ind;
-    //int running;
+    float _measure = 0.0f;
+
     QRegExp xRegExp("(-?\\d+(?:[\\.,]\\d+(?:e\\d+)?)?)");
 
     QByteArray data = m_sock->readAll();
@@ -228,74 +227,96 @@ void enveas::readData()
             status = INVALIDDATA;
 
 
-        if ((status == MEASURING) || (status == ZEROREF))
+        if (status == MEASURING)
         {
             switch (type) {
             case SO2_H2S:
-                measure->insert("SO2", list.at(1).toFloat() >= 0 ? list.at(1).toFloat() : 0.0f + measure->value("SO2"));
+                measure->insert("SO2", list.at(1).toFloat() > 0 ? list.at(1).toFloat() + measure->value("SO2") :  measure->value("SO2"));
                 sample_t->insert("SO2", sample_t->value("SO2")+1);
+                _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
 
-                measure->insert("H2S", list.at(2).toFloat() >= 0 ? list.at(2).toFloat() : 0.0f  + measure->value("H2S"));
+                measure->insert("H2S",  list.at(2).toFloat() > 0 ? list.at(2).toFloat() + measure->value("H2S") : measure->value("H2S"));
                 sample_t->insert("H2S", sample_t->value("H2S")+1);
+                _measure = list.at(2).toFloat() < 0 ? list.at(2).toFloat() : _measure;
 
                 break;
 
             case SO2:
-                measure->insert("SO2", list.at(1).toFloat() >= 0 ? list.at(1).toFloat() : 0.0f  + measure->value("SO2"));
+                measure->insert("SO2", list.at(1).toFloat() > 0 ? list.at(1).toFloat() + measure->value("SO2") :  measure->value("SO2"));
                 sample_t->insert("SO2", sample_t->value("SO2")+1);
+                _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
 
                 break;
             case H2S:
-                measure->insert("H2S", list.at(1).toFloat() >= 0 ? list.at(1).toFloat() : 0.0f  + measure->value("H2S"));
+                measure->insert("H2S", list.at(1).toFloat() > 0 ? list.at(1).toFloat() + measure->value("H2S") :  measure->value("H2S"));
                 sample_t->insert("H2S", sample_t->value("H2S")+1);
+                _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
+
                 break;
             case NOx_NH3:
 
-                measure->insert("NO", list.at(1).toFloat() >= 0 ? list.at(1).toFloat() : 0.0f  + measure->value("NO"));
+                measure->insert("NO", list.at(1).toFloat() > 0 ? list.at(1).toFloat() + measure->value("NO") :  measure->value("NO"));
                 sample_t->insert("NO", sample_t->value("NO")+1);
+                _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
 
-                measure->insert("NO2",list.at(2).toFloat() >= 0 ? list.at(2).toFloat() : 0.0f  + measure->value("NO2"));
+
+                measure->insert("NO2", list.at(2).toFloat() > 0 ? list.at(2).toFloat() + measure->value("NO2") :  measure->value("NO2"));
                 sample_t->insert("NO2", sample_t->value("NO2")+1);
+                _measure = list.at(2).toFloat() < 0 ? list.at(2).toFloat() : _measure;
 
-                measure->insert("NOx", list.at(3).toFloat() >= 0 ? list.at(3).toFloat() : 0.0f  + measure->value("NOx"));
+                measure->insert("NOx", list.at(3).toFloat() > 0 ? list.at(3).toFloat() + measure->value("NOx") :  measure->value("NOx"));
                 sample_t->insert("NOx", sample_t->value("NOx")+1);
+                _measure = list.at(3).toFloat() < 0 ? list.at(3).toFloat() : _measure;
 
-                measure->insert("NH3", list.at(4).toFloat() >= 0 ? list.at(4).toFloat() : 0.0f  + measure->value("NH3"));
+
+                measure->insert("NH3", list.at(4).toFloat() > 0 ? list.at(4).toFloat() + measure->value("NH3") :  measure->value("NH3"));
                 sample_t->insert("NH3", sample_t->value("NH3")+1);
+                _measure = list.at(4).toFloat() < 0 ? list.at(4).toFloat() : _measure;
+
                 break;
 
             case NOx:
-                measure->insert("NO", list.at(1).toFloat() >= 0 ? list.at(1).toFloat() : 0.0f  + measure->value("NO"));
+                measure->insert("NO", list.at(1).toFloat() > 0 ? list.at(1).toFloat() + measure->value("NO") :  measure->value("NO"));
                 sample_t->insert("NO", sample_t->value("NO")+1);
+                _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
 
-                measure->insert("NO2",list.at(2).toFloat() >= 0 ? list.at(2).toFloat() : 0.0f  + measure->value("NO2"));
+
+                measure->insert("NO2", list.at(2).toFloat() > 0 ? list.at(2).toFloat() + measure->value("NO2") :  measure->value("NO2"));
                 sample_t->insert("NO2", sample_t->value("NO2")+1);
+                _measure = list.at(2).toFloat() < 0 ? list.at(2).toFloat() : _measure;
 
-                measure->insert("NOx", list.at(3).toFloat() >= 0 ? list.at(3).toFloat() : 0.0f  + measure->value("NOx"));
+                measure->insert("NOx", list.at(3).toFloat() > 0 ? list.at(3).toFloat() + measure->value("NOx") :  measure->value("NOx"));
                 sample_t->insert("NOx", sample_t->value("NOx")+1);
+                _measure = list.at(3).toFloat() < 0 ? list.at(3).toFloat() : _measure;
 
                 break;
 
             case CO:
 
-                measure->insert("CO",  list.at(1).toFloat() >= 0 ? list.at(1).toFloat() : 0.0f + measure->value("CO"));
+                measure->insert("CO",  list.at(1).toFloat() > 0 ? list.at(1).toFloat() + measure->value("CO") :  measure->value("CO"));
                 sample_t->insert("CO", sample_t->value("CO")+1);
+                _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
 
                 break;
 
             case PM:
 
-                measure->insert("PM1",  list.at(1).toFloat() >= 0 ? list.at(1).toFloat() : 0.0f + measure->value("PM1"));
+                measure->insert("PM1",   list.at(1).toFloat() > 0 ? list.at(1).toFloat() + measure->value("PM1") :  measure->value("PM1"));
                 sample_t->insert("PM1", sample_t->value("PM1")+1);
+                _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
 
-                measure->insert("PM2.5",  list.at(2).toFloat() >= 0 ? list.at(2).toFloat() : 0.0f + measure->value("PM2.5"));
+                measure->insert("PM2.5",   list.at(2).toFloat() > 0 ? list.at(2).toFloat() + measure->value("PM2.5") :  measure->value("PM2.5"));
                 sample_t->insert("PM2.5", sample_t->value("PM2.5")+1);
+                _measure = list.at(2).toFloat() < 0 ? list.at(2).toFloat() : _measure;
 
-                measure->insert("PM10", list.at(3).toFloat() >= 0 ? list.at(3).toFloat() : 0.0f + measure->value("PM10"));
+                measure->insert("PM10",  list.at(3).toFloat() > 0 ? list.at(3).toFloat() + measure->value("PM10") :  measure->value("PM10"));
                 sample_t->insert("PM10", sample_t->value("PM10")+1);
+                _measure = list.at(3).toFloat() < 0 ? list.at(3).toFloat() : _measure;
 
-                measure->insert("PM",  list.at(4).toFloat() >= 0 ? list.at(4).toFloat() : 0.0f + measure->value("PM"));
+                measure->insert("PM",   list.at(4).toFloat() > 0 ? list.at(4).toFloat() + measure->value("PM") :  measure->value("PM"));
                 sample_t->insert("PM", sample_t->value("PM")+1);
+                _measure = list.at(4).toFloat() < 0 ? list.at(4).toFloat() : _measure;
+
 
                 break;
 
@@ -311,12 +332,11 @@ void enveas::readData()
     default: break;
     }
 
-    if ((status == INVALIDDATA) & (last_command != ZEROREFERENCE) || (measure->value("H2S") < 0) || (measure->value("SO2") < 0)|| (measure->value("NO") < 0)
-            || (measure->value("NO2") < 0) || (measure->value("NOx") < 0) || (measure->value("NH3") < 0) || (measure->value("CO") < 0))
+    if (((status == INVALIDDATA) || (status == MEASURING) ) && (last_command != ZEROREFERENCE) && (_measure < 0))
         zero_ref();
 
     if (verbose)
-        qDebug() << "ENVEA "<< model << "measure data: " << data << " \n\r Status: " <<QVariant::fromValue(status).toString() << " \n\r";
+        qDebug() << "ENVEA "<< QVariant::fromValue(type).toString() << "measure data: " << data << " \n\r Status: " << QVariant::fromValue(status).toString() << " \n\r";
 
     this->is_read = true;
 
@@ -333,17 +353,17 @@ void enveas::displayError(QAbstractSocket::SocketError socketError)
     case QAbstractSocket::RemoteHostClosedError:
         break;
     case QAbstractSocket::HostNotFoundError:
-        qDebug()<<   "!!! ENVEA measure " << model << " equipment handling error: The host was not found. Please check the "
+        qDebug()<<   "!!! ENVEA measure " << QVariant::fromValue(type).toString() << " equipment handling error: The host was not found. Please check the "
                                                       "host name and port settings.\n\r";
         break;
     case QAbstractSocket::ConnectionRefusedError:
-        qDebug()<< "!!! ENVEA measure equipment "<< model << " handling error: The connection was refused by the peer. "
+        qDebug()<< "!!! ENVEA measure equipment "<< QVariant::fromValue(type).toString() << " handling error: The connection was refused by the peer. "
                                                              "Make sure the fortune server is running, "
                                                              "and check that the host name and port "
                                                              "settings are correct.\n\r";
         break;
     default:
-        qDebug()<< "!!! ENVEA measure equipment " << model << " handling error: " << (m_sock->errorString())<<"\n\r";
+        qDebug()<< "!!! ENVEA measure equipment " << QVariant::fromValue(type).toString() << " handling error: " << (m_sock->errorString())<<"\n\r";
     }
 
     if (m_sock->isOpen())

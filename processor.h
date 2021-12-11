@@ -122,6 +122,11 @@ private:
     quint16 m_envea_port_so2;
     QString m_envea_name_so2;
 
+    enveas *m_envea_h2s = nullptr;
+    QString m_envea_ip_h2s;
+    quint16 m_envea_port_h2s;
+    QString m_envea_name_h2s;
+
 
     enveas *m_envea_so2_h2s = nullptr;
     QString m_envea_ip_so2_h2s;

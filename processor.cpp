@@ -183,6 +183,41 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         }
     }
 
+    //H2S
+    if (cmdline_args.indexOf("-enveaiph2s")>-1)
+        m_envea_ip_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaiph2s") +1);
+
+    if (m_envea_ip_h2s == "")
+    {
+        qDebug ( "IP address of ENVEA equipment for H2S is not set.\n\r");
+    }
+    else
+    {
+        m_envea_port_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaporth2s") +1).toUShort();
+        if (m_envea_port_h2s <= 0)
+        {
+            qDebug ("ENVEA equipment for H2S port error:  expected parameter\n\r");
+        }
+        else
+        {
+            m_envea_name_h2s = cmdline_args.value(cmdline_args.indexOf("-enveanameh2s") +1);
+            if (m_envea_name_h2s == "")
+            {
+                qDebug ("ENVEA equipment for H2S the MODE 4 name error:  expected parameter\n\r");
+            }
+            else
+            {
+                m_envea_h2s = new enveas(this, &m_envea_ip_h2s, &m_envea_port_h2s, &m_envea_name_h2s, enveas::H2S);
+                m_envea_h2s->sync();
+                m_envea_h2s->standby();
+                m_envea_h2s->start();
+                connect(m_envea_h2s, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_h2s->verbose = true;
+            }
+        }
+    }
+
     //SO2 + H2S
     if (cmdline_args.indexOf("-enveaipso2h2s")>-1)
         m_envea_ip_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaipso2h2s") +1);
@@ -1885,6 +1920,22 @@ void processor::renovateSlaveID( void )
         }
     }
 
+    if (m_envea_h2s){
+        if (!m_envea_h2s->connected)
+        {
+            if ( (m_envea_ip_h2s != "") && (m_envea_port_h2s >0)){
+
+                m_envea_h2s->~enveas();
+                m_envea_h2s = new enveas(this, &m_envea_ip_h2s, &m_envea_port_h2s, &m_envea_name_h2s, enveas::H2S);
+                m_envea_h2s->start();
+                connect(m_envea_h2s, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*, QString*))); //fill several data to one sensor's base
+                if (verbose)
+                    m_envea_h2s->verbose = true;
+            }
+        }
+    }
+
+
     if (m_envea_so2_h2s){
         if (!m_envea_so2_h2s->connected)
         {
@@ -2619,6 +2670,9 @@ void  processor::initStatus()
     if (m_envea_so2)
         m_status->insert("SO2", UNKNOWN);
 
+    if (m_envea_h2s)
+        m_status->insert("H2S", UNKNOWN);
+
     if (m_envea_nox_nh3)
     {
         m_status->insert("SO2", UNKNOWN);
@@ -2845,6 +2899,11 @@ void processor::readSocketStatus()
     if (m_envea_so2)
     {
         m_envea_so2->readGases(1);
+    }
+
+    if (m_envea_h2s)
+    {
+        m_envea_h2s->readGases(1);
     }
 
     if (m_envea_so2_h2s)
