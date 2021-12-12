@@ -202,28 +202,28 @@ void enveas::readData()
         list = QString(QString(data).remove(QRegExp("[\r\n{\r\n}]"))).split(QRegExp(" "));
         ind = xRegExp.indexIn(list.at(0));
 
-        if ( QString(data).indexOf("M") != -1)
+        if ( QString(data.mid(13)).indexOf("M") != -1)
             status = MEASURING;
 
-        if ( QString(data).indexOf("P") != -1)
+        if ( QString(data.mid(13)).indexOf("P") != -1)
             status = INSTRUMENT_WARM_UP;
 
-        if ( QString(data).indexOf("T") != -1)
+        if ( QString(data.mid(13)).indexOf("T") != -1)
             status = STANDBYORTEST;
 
-        if ( QString(data).indexOf("R") != -1)
+        if ( QString(data.mid(13)).indexOf("R") != -1)
             status = ZEROREF;
 
-        if ( QString(data).indexOf("Z") != -1)
+        if ( QString(data.mid(13)).indexOf("Z") != -1)
             status = ZERO;
 
-        if ( QString(data).indexOf("S") != -1)
+        if ( QString(data.mid(13)).indexOf("S") != -1)
             status = SPAN;
 
-        if ( QString(data).indexOf("C") != -1)
+        if ( QString(data.mid(13)).indexOf("C") != -1)
             status = SPANAUTO;
 
-        if ( QString(data).indexOf("N") != -1)
+        if ( QString(data.mid(13)).indexOf("N") != -1)
             status = INVALIDDATA;
 
 
@@ -281,13 +281,13 @@ void enveas::readData()
                 _measure = list.at(1).toFloat() < 0 ? list.at(1).toFloat() : _measure;
 
 
-                measure->insert("NO2", list.at(2).toFloat() > 0 ? list.at(2).toFloat() + measure->value("NO2") :  measure->value("NO2"));
+                measure->insert("NO2", list.at(3).toFloat() > 0 ? list.at(3).toFloat() + measure->value("NO2") :  measure->value("NO2"));
                 sample_t->insert("NO2", sample_t->value("NO2")+1);
-                _measure = list.at(2).toFloat() < 0 ? list.at(2).toFloat() : _measure;
-
-                measure->insert("NOx", list.at(3).toFloat() > 0 ? list.at(3).toFloat() + measure->value("NOx") :  measure->value("NOx"));
-                sample_t->insert("NOx", sample_t->value("NOx")+1);
                 _measure = list.at(3).toFloat() < 0 ? list.at(3).toFloat() : _measure;
+
+                measure->insert("NOx", list.at(2).toFloat() > 0 ? list.at(2).toFloat() + measure->value("NOx") :  measure->value("NOx"));
+                sample_t->insert("NOx", sample_t->value("NOx")+1);
+                _measure = list.at(2).toFloat() < 0 ? list.at(2).toFloat() : _measure;
 
                 break;
 

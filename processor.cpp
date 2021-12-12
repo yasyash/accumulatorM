@@ -829,18 +829,29 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     
     //range coefficients init
     m_range = new QMap<QString, int>;
-    //this-> ms_range = new QMap<QString, int>;
-    
-    m_range->insert("CO", 10);
-    m_range->insert("NO2", 1000);
-    m_range->insert("NO", 1000);
-    m_range->insert("SO2", 1000000);
-    m_range->insert("H2S", 1000000);
-    m_range->insert("CH2O", 1000);
-    m_range->insert("O3", 1000);
-    m_range->insert("NH3", 1000);
-    m_range->insert("NOx", 1000);
-    
+
+    if (m_envea_h2s||m_envea_nox||m_envea_so2||m_envea_nox_nh3||m_envea_so2_h2s)
+    {
+        m_range->insert("CO", 10);
+        m_range->insert("NO2", 1000000);
+        m_range->insert("NO", 1000000);
+        m_range->insert("SO2", 1000000);
+        m_range->insert("H2S", 1000000);
+        m_range->insert("CH2O", 1000000);
+        m_range->insert("O3", 1000000);
+        m_range->insert("NH3", 1000000);
+        m_range->insert("NOx", 1000000);
+    } else {
+        m_range->insert("CO", 10);
+        m_range->insert("NO2", 1000);
+        m_range->insert("NO", 1000);
+        m_range->insert("SO2", 1000);
+        m_range->insert("H2S", 1000);
+        m_range->insert("CH2O", 1000);
+        m_range->insert("O3", 1000);
+        m_range->insert("NH3", 1000);
+        m_range->insert("NOx", 1000);
+    }
     
     m_range->insert("бензол", 1000);
     m_range->insert("толуол", 1000);
@@ -1900,7 +1911,7 @@ void processor::renovateSlaveID( void )
             QString _serialnum = m_topasip->serialnum;
             m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &_serialnum);
             if (m_topasip){
-                 connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+                connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
             }
         }
     }
@@ -2965,8 +2976,8 @@ void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, 
             m_measure->insert(sensor.key(), m_measure->value(sensor.key()) + _sample->value(sensor.key()));
             m_status->insert(sensor.key(), _status->value(sensor.key()));
             
-          //  _measure->insert(sensor.key(), 0 );
-           // _sample->insert(sensor.key(), 0);
+            //  _measure->insert(sensor.key(), 0 );
+            // _sample->insert(sensor.key(), 0);
         }
         
     }
