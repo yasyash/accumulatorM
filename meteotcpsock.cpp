@@ -398,19 +398,13 @@ void MeteoTcpSock::readData()
 
                 while (_iter_meteo != measure->end())
                 {
-                    qDebug() << "   "<< _iter_meteo.key()<<" = " << measure->value(_iter_meteo.key());
+                    qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()) / sample_t);
                     _iter_meteo++;
                 }
             } else {
                 qDebug() << "Meteostation's data parsed \n\r" ;
-
             }
         }
-
-
-
-
-
     }
     else {
         //for DV VP
@@ -702,7 +696,7 @@ void MeteoTcpSock::readData()
 
                 while (_iter_meteo != measure->end())
                 {
-                    qDebug() << "   "<< _iter_meteo.key()<<" = " << measure->value(_iter_meteo.key());
+                    qDebug() << "   "<< _iter_meteo.key()<<" = " << measure_prev->value(_iter_meteo.key());
                     _iter_meteo++;
                 }
             } else {
