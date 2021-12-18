@@ -280,8 +280,6 @@ void MeteoTcpSock::readData()
 
     QByteArray data = m_sock->readAll();
 
-    qDebug() << "Meteostation sent data: " << data << " lenght - " << data.length() << " \n\r";
-
     this->is_read = false;
 
     //emit (dataReady(data));
@@ -392,9 +390,24 @@ void MeteoTcpSock::readData()
             if (wrong == 9)
                 sample_t++;
 
+            if (verbose)
+            {
+                QMap<QString, float>::iterator _iter_meteo = measure->begin();
 
+                qDebug() << "\n\rMeteostation parced data: \n\r";
+
+                while (_iter_meteo != measure->end())
+                {
+                    qDebug() << "   "<< _iter_meteo.key()<<" = " << measure->value(_iter_meteo.key());
+                    _iter_meteo++;
+                }
+            } else {
+                qDebug() << "Meteostation's data parsed \n\r" ;
+
+            }
         }
-        qDebug() << "Meteostation's data parsed \n\r" ;
+
+
 
 
 
@@ -680,8 +693,27 @@ void MeteoTcpSock::readData()
             else {
                 first_run =  false;
             }
+
+            if (verbose)
+            {
+                QMap<QString, float>::iterator _iter_meteo = measure->begin();
+
+                qDebug() << "\n\rMeteostation parced data: \n\r";
+
+                while (_iter_meteo != measure->end())
+                {
+                    qDebug() << "   "<< _iter_meteo.key()<<" = " << measure->value(_iter_meteo.key());
+                    _iter_meteo++;
+                }
+            } else {
+                qDebug() << "Meteostation's data parsed \n\r" ;
+
+            }
         }
+
     }
+
+    //qDebug() << "Meteostation sent data: " << data << " lenght - " << data.length() << " \n\r";
 
 }
 void MeteoTcpSock::displayError(QAbstractSocket::SocketError socketError)

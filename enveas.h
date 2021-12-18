@@ -35,6 +35,7 @@ public:
 
 
     void readGases(int qw);
+    void readGasesEx();
     void readStatus();
     void sendData(int command, QByteArray *data);
     void readAbout();

@@ -663,6 +663,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
                     
                 }
             }
+            if (verbose)
+                m_meteo->verbose = true;
         }
         
     }
@@ -1816,8 +1818,12 @@ void processor::renovateSlaveID( void )
                 if (m_meteo_model == ""){
                     
                     m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out);
+                    if (verbose)
+                        m_meteo->verbose = true;
                 } else {
                     m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out, &m_meteo_model);
+                    if (verbose)
+                        m_meteo->verbose = true;
                 }            }
         }
     }
@@ -2929,7 +2935,8 @@ void processor::readSocketStatus()
 
     if (m_envea_nox_nh3)
     {
-        m_envea_nox_nh3->readGases(1);
+        //m_envea_nox_nh3->readGases(1);
+        m_envea_nox_nh3->readGasesEx();
     }
 }
 

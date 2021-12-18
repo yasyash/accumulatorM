@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2019 Yaroslav Shkliar <mail@ilit.ru>
+ * Copyright © 2018-2021 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -74,13 +74,12 @@ public:
     uint sample_t;
     QMap<QString, float> *measure;
     QMap<QString, float> *measure_dir_wind;
-       QMap<QString, float> *measure_prev; // previous sample
+    QMap<QString, float> *measure_prev; // previous sample
 
     enum _command last_command;
     QAbstractSocket::SocketState connected = QAbstractSocket::UnconnectedState;
 
-
-    // QDataStream *in_stream;
+    bool verbose = false;
 };
 
 #endif // DUSTTCPSOCK_H

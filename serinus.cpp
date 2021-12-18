@@ -234,7 +234,7 @@ void Serinus::readData()
 
     data.append( _data); //copy to main buffer
 
-    if (data.length() > 16)  //data buffer detection on fullness
+    if (data.length() > 16)  //data buffer detection for fullness
     {
         start = data.indexOf(0x04);
 
