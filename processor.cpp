@@ -120,10 +120,72 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     {
         qDebug () << "\n\r*************************************************\n\r            Fetcher version " <<  APP_VERSION << "\n\r*************************************************\n\r";
     }
-    
+    //DB connection init
+    QString db ="";
+    if (cmdline_args.indexOf("-db") > -1)
+        db = cmdline_args.value(cmdline_args.indexOf("-db") +1);
+    if (db == "")
+    {
+        // releaseModbus();
+
+        qDebug ( "Fatal error: wrong data of the database parameter\n\r");
+        exit(-1);
+
+    }
+
+    QString user = cmdline_args.value(cmdline_args.indexOf("-user") +1);
+    if (user == "")
+    {
+        // releaseModbus();
+
+        qDebug ( "Fatal error: wrong data of the user parameter\n\r");
+        exit(-1);
+
+    }
+
+    QString pw = cmdline_args.value(cmdline_args.indexOf("-pwd") +1);
+    if (pw == "")
+    {
+        // releaseModbus();
+
+        qDebug ( "Fatal error: wrong data of the password parameter\n\r");
+        exit(-1);
+
+    }
+
+    m_conn = new QSqlDatabase();
+    *m_conn = QSqlDatabase::addDatabase("QPSQL");
+    m_conn->setHostName("localhost");
+    m_conn->setDatabaseName(db);
+    m_conn->setUserName(user);
+    m_conn->setPassword(pw);
+
+
+    bool status = m_conn->open();
+
     // UPS init
-    if (cmdline_args.indexOf("-upsip") > -1)
+    if (cmdline_args.indexOf("-upsip") > -1){
         m_ups_ip = cmdline_args.value(cmdline_args.indexOf("-upsip") +1);
+        m_ups_port = cmdline_args.value(cmdline_args.indexOf("-upsport") +1).toUShort();
+        m_ups_username = cmdline_args.value(cmdline_args.indexOf("-upsuser") +1);
+    }
+    else
+    { if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-upsip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_ups_ip = init_str_list[init_str_list.indexOf("-upsip") +1];
+            m_ups_port = init_str_list[init_str_list.indexOf("-upsport") +1].toUShort();
+            m_ups_username = init_str_list[init_str_list.indexOf("-upsuser") +1];
+        }
+    }
     
     if (m_ups_ip == "")
     {
@@ -132,14 +194,12 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     else
     {
         
-        m_ups_port = cmdline_args.value(cmdline_args.indexOf("-upsport") +1).toUShort();
         if (m_ups_port <= 0)
         {
             qDebug ("UPS port error:  expected parameter\n\r");
         }
         else
         {
-            m_ups_username = cmdline_args.value(cmdline_args.indexOf("-upsuser") +1);
             
             m_ups = new ups_status(&m_ups_ip, &m_ups_port, &m_ups_username);
             //qDebug() << "UPS model: "<< QString::fromStdString(m_ups->m_model->getValue().data()[0]) <<"\n Voltage: "
@@ -149,8 +209,27 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     
     //ENVEA group init
     //SO2
-    if (cmdline_args.indexOf("-enveaipso2")>-1)
+    if (cmdline_args.indexOf("-enveaipso2")>-1){
         m_envea_ip_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaipso2") +1);
+        m_envea_port_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaportso2") +1).toUShort();
+        m_envea_name_so2 = cmdline_args.value(cmdline_args.indexOf("-enveanameso2") +1);
+    } else {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-enveaipso2%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_envea_ip_so2 = init_str_list[init_str_list.indexOf("-enveaipso2") +1];
+            m_envea_port_so2 = init_str_list[init_str_list.indexOf("-enveaportso2") +1].toUShort();
+            m_envea_name_so2 = init_str_list[init_str_list.indexOf("-enveanameso2") +1];
+        }
+    }
 
     if (m_envea_ip_so2 == "")
     {
@@ -158,14 +237,12 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_so2 = cmdline_args.value(cmdline_args.indexOf("-enveaportso2") +1).toUShort();
         if (m_envea_port_so2 <= 0)
         {
             qDebug ("ENVEA equipment for SO2 port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_so2 = cmdline_args.value(cmdline_args.indexOf("-enveanameso2") +1);
             if (m_envea_name_so2 == "")
             {
                 qDebug ("ENVEA equipment for SO2 the MODE 4 name error:  expected parameter\n\r");
@@ -452,47 +529,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         
     }
     
-    QString db ="";
-    if (cmdline_args.indexOf("-db") > -1)
-        db = cmdline_args.value(cmdline_args.indexOf("-db") +1);
-    if (db == "")
-    {
-        // releaseModbus();
-        
-        qDebug ( "Fatal error: wrong data of the database parameter\n\r");
-        exit(-1);
-        
-    }
-    
-    QString user = cmdline_args.value(cmdline_args.indexOf("-user") +1);
-    if (user == "")
-    {
-        // releaseModbus();
-        
-        qDebug ( "Fatal error: wrong data of the user parameter\n\r");
-        exit(-1);
-        
-    }
-    
-    QString pw = cmdline_args.value(cmdline_args.indexOf("-pwd") +1);
-    if (pw == "")
-    {
-        // releaseModbus();
-        
-        qDebug ( "Fatal error: wrong data of the password parameter\n\r");
-        exit(-1);
-        
-    }
-    
-    m_conn = new QSqlDatabase();
-    *m_conn = QSqlDatabase::addDatabase("QPSQL");
-    m_conn->setHostName("localhost");
-    m_conn->setDatabaseName(db);
-    m_conn->setUserName(user);
-    m_conn->setPassword(pw);
-    
-    
-    bool status = m_conn->open();
+
     if (!status)
     {
         //releaseModbus();
