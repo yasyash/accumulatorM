@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2021 Yaroslav Shkliar <mail@ilit.ru>
+ * Copyright © 2018-2022 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -261,8 +261,28 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
 
     //H2S
-    if (cmdline_args.indexOf("-enveaiph2s")>-1)
+    if (cmdline_args.indexOf("-enveaiph2s")>-1){
         m_envea_ip_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaiph2s") +1);
+        m_envea_port_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaporth2s") +1).toUShort();
+        m_envea_name_h2s = cmdline_args.value(cmdline_args.indexOf("-enveanameh2s") +1);
+
+    } else {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-enveaiph2s%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_envea_ip_h2s = init_str_list[init_str_list.indexOf("-enveaiph2s") +1];
+            m_envea_port_h2s = init_str_list[init_str_list.indexOf("-enveaporth2s") +1].toUShort();
+            m_envea_name_h2s = init_str_list[init_str_list.indexOf("-enveanameh2s") +1];
+        }
+    }
 
     if (m_envea_ip_h2s == "")
     {
@@ -270,14 +290,12 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaporth2s") +1).toUShort();
         if (m_envea_port_h2s <= 0)
         {
             qDebug ("ENVEA equipment for H2S port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_h2s = cmdline_args.value(cmdline_args.indexOf("-enveanameh2s") +1);
             if (m_envea_name_h2s == "")
             {
                 qDebug ("ENVEA equipment for H2S the MODE 4 name error:  expected parameter\n\r");
@@ -296,8 +314,28 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
 
     //SO2 + H2S
-    if (cmdline_args.indexOf("-enveaipso2h2s")>-1)
+    if (cmdline_args.indexOf("-enveaipso2h2s")>-1){
         m_envea_ip_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaipso2h2s") +1);
+        m_envea_port_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaportso2h2s") +1).toUShort();
+        m_envea_name_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveanameso2h2s") +1);
+
+    } else {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-enveaipso2h2s%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_envea_ip_so2_h2s = init_str_list[init_str_list.indexOf("-enveaipso2h2s") +1];
+            m_envea_port_so2_h2s = init_str_list[init_str_list.indexOf("-enveaportso2h2s") +1].toUShort();
+            m_envea_name_so2_h2s = init_str_list[init_str_list.indexOf("-enveanameso2h2s") +1];
+        }
+    }
 
     if (m_envea_ip_so2_h2s == "")
     {
@@ -305,14 +343,12 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveaportso2h2s") +1).toUShort();
         if (m_envea_port_so2_h2s <= 0)
         {
             qDebug ("ENVEA equipment for SO2 + H2S port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_so2_h2s = cmdline_args.value(cmdline_args.indexOf("-enveanameso2h2s") +1);
             if (m_envea_name_so2_h2s == "")
             {
                 qDebug ("ENVEA equipment for SO2 + H2S the MODE 4 name error:  expected parameter\n\r");
@@ -332,8 +368,28 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
     //NOx
 
-    if (cmdline_args.indexOf("-enveaipnox")>-1)
+    if (cmdline_args.indexOf("-enveaipnox")>-1){
         m_envea_ip_nox = cmdline_args.value(cmdline_args.indexOf("-enveaipnox") +1);
+        m_envea_port_nox = cmdline_args.value(cmdline_args.indexOf("-enveaportnox") +1).toUShort();
+        m_envea_name_nox = cmdline_args.value(cmdline_args.indexOf("-enveanamenox") +1);
+
+    } else {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-enveaipnox%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_envea_ip_nox = init_str_list[init_str_list.indexOf("-enveaipnox") +1];
+            m_envea_port_nox = init_str_list[init_str_list.indexOf("-enveaportnox") +1].toUShort();
+            m_envea_name_nox = init_str_list[init_str_list.indexOf("-enveanamenox") +1];
+        }
+    }
 
     if (m_envea_ip_nox == "")
     {
@@ -341,14 +397,12 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_nox = cmdline_args.value(cmdline_args.indexOf("-enveaportnox") +1).toUShort();
         if (m_envea_port_nox <= 0)
         {
             qDebug ("ENVEA equipment for NOx port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_nox = cmdline_args.value(cmdline_args.indexOf("-enveanamenox") +1);
             if (m_envea_name_nox == "")
             {
                 qDebug ("ENVEA equipment for NOx the MODE 4 name error:  expected parameter\n\r");
@@ -368,8 +422,29 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
     //NOx + NH3
 
-    if (cmdline_args.indexOf("-enveaipnoxnh3")>-1)
+    if (cmdline_args.indexOf("-enveaipnoxnh3")>-1){
         m_envea_ip_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaipnoxnh3") +1);
+        m_envea_port_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaportnoxnh3") +1).toUShort();
+        m_envea_name_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveanamenoxnh3") +1);
+    }
+    else
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-enveaipnoxnh3%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_envea_ip_nox_nh3 = init_str_list[init_str_list.indexOf("-enveaipnoxnh3") +1];
+            m_envea_port_nox_nh3 = init_str_list[init_str_list.indexOf("-enveaportnoxnh3") +1].toUShort();
+            m_envea_name_nox_nh3 = init_str_list[init_str_list.indexOf("-enveanamenoxnh3") +1];
+        }
+    }
 
     if (m_envea_ip_nox_nh3 == "")
     {
@@ -377,14 +452,12 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_envea_port_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveaportnoxnh3") +1).toUShort();
         if (m_envea_port_nox_nh3 <= 0)
         {
             qDebug ("ENVEA equipment for NOx + NH3 port error:  expected parameter\n\r");
         }
         else
         {
-            m_envea_name_nox_nh3 = cmdline_args.value(cmdline_args.indexOf("-enveanamenoxnh3") +1);
             if (m_envea_name_nox_nh3 == "")
             {
                 qDebug ("ENVEA equipment for NOx + NH3 the MODE 4 name error:  expected parameter\n\r");
@@ -403,8 +476,26 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
 
     //IVTM init
-    if (cmdline_args.indexOf("-ivtmip")>-1)
+    if (cmdline_args.indexOf("-ivtmip")>-1){
         m_ivtm_ip = cmdline_args.value(cmdline_args.indexOf("-ivtmip") +1);
+        m_ivtm_port = cmdline_args.value(cmdline_args.indexOf("-ivtmport") +1).toUShort();
+
+    } else {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-ivtmip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_ivtm_ip = init_str_list[init_str_list.indexOf("-ivtmip") +1];
+            m_ivtm_port = init_str_list[init_str_list.indexOf("-ivtmport") +1].toUShort();
+        }
+    }
     
     if (m_ivtm_ip == "")
     {
@@ -412,7 +503,6 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     else
     {
-        m_ivtm_port = cmdline_args.value(cmdline_args.indexOf("-ivtmport") +1).toUShort();
         if (m_ivtm_port <= 0)
         {
             qDebug ("IVTM TCP Modbus port error:  expected parameter\n\r");
@@ -431,9 +521,28 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     
     
     // GammaET init
-    if (cmdline_args.indexOf("-gammaetip")>-1)
+    if (cmdline_args.indexOf("-gammaetip")>-1){
         m_gammaet_ip = cmdline_args.value(cmdline_args.indexOf("-gammaetip") +1);
-    
+        m_gammaet_port = cmdline_args.value(cmdline_args.indexOf("-gammaetport") +1).toUShort();
+
+    }
+    else
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-gammaetip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_gammaet_ip = init_str_list[init_str_list.indexOf("-gammaetip") +1];
+            m_gammaet_port = init_str_list[init_str_list.indexOf("-gammaetport") +1].toUShort();
+        }
+    }
     if (m_gammaet_ip == "")
     {
         qDebug ( "IP address of GammaET is not set.\n\r");
@@ -441,7 +550,6 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     else
     {
         
-        m_gammaet_port = cmdline_args.value(cmdline_args.indexOf("-gammaetport") +1).toUShort();
         if (m_gammaet_port <= 0)
         {
             qDebug ("GammaET port error:  expected parameter\n\r");
@@ -458,9 +566,30 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     
     
     // modbusip init
-    if (cmdline_args.indexOf("-moxaip")>-1)
+    if (cmdline_args.indexOf("-moxaip")>-1){
         m_modbus_ip = cmdline_args.value(cmdline_args.indexOf("-moxaip") +1);
-    
+        m_modbus_port = cmdline_args.value(cmdline_args.indexOf("-moxaport485") +1).toUShort();
+        m_modbus_port232 = cmdline_args.value(cmdline_args.indexOf("-moxaport232") +1).toUShort();
+
+    }
+    else
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-moxaip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_modbus_ip = init_str_list[init_str_list.indexOf("-moxaip") +1];
+            m_modbus_port = init_str_list[init_str_list.indexOf("-moxaport485") +1].toUShort();
+            m_modbus_port232 = init_str_list[init_str_list.indexOf("-moxaport232") +1].toUShort();
+        }
+    }
     if (m_modbus_ip == "")
     {
         qDebug ( "IP address of modbus is not set.\n\r");
@@ -468,7 +597,6 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     else
     {
         
-        m_modbus_port = cmdline_args.value(cmdline_args.indexOf("-moxaport485") +1).toUShort();
         if (m_modbus_port <= 0)
         {
             qDebug ("modbus485 port error:  expected parameter\n\r");
@@ -481,7 +609,6 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             
         }
         
-        m_modbus_port232 = cmdline_args.value(cmdline_args.indexOf("-moxaport232") +1).toUShort();
         if (m_modbus_port232 <= 0)
         {
             qDebug ("modbus232 port error:  expected parameter\n\r");
@@ -496,8 +623,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     
     //topas init
-    if (cmdline_args.indexOf("-topasip") > -1)
+    QString _serialnum;
+    if (cmdline_args.indexOf("-topasip") > -1){
         m_topas_ip = cmdline_args.value(cmdline_args.indexOf("-topasip") +1);
+        m_topas_port = cmdline_args.value(cmdline_args.indexOf("-topasport") +1).toUShort();
+        QString _serialnum = cmdline_args.value(cmdline_args.indexOf("-topasnum") +1);
+
+    }
+    else
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-topasip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_topas_ip = init_str_list[init_str_list.indexOf("-topasip") +1];
+            m_topas_port = init_str_list[init_str_list.indexOf("-topasport") +1].toUShort();
+            _serialnum = init_str_list[init_str_list.indexOf("-topasnum") +1];
+        }
+    }
+
     if (m_topas_ip == "")
     {
         qDebug ( "IP address of the TOPAS is not set.\n\r");
@@ -505,14 +656,12 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     else
     {
         
-        m_topas_port = cmdline_args.value(cmdline_args.indexOf("-topasport") +1).toUShort();
         if (m_topas_port <= 0)
         {
             qDebug ("TOPAS port error:  expected parameter\n\r");
         }
         else
         {
-            QString _serialnum = cmdline_args.value(cmdline_args.indexOf("-topasnum") +1);
             if (_serialnum == "")
             {
                 qDebug ("TOPAS serial number ia absend error:  expected parameter\n\r");
@@ -569,13 +718,33 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     
     //alarm init
     m_alarmip = cmdline_args.value(cmdline_args.indexOf("-alarmip") +1);
+    m_alarmport = cmdline_args.value(cmdline_args.indexOf("-alarmport") +1).toUShort();
+
+    if (m_alarmip == "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-alarmip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_alarmip = init_str_list[init_str_list.indexOf("-alarmip") +1];
+            m_alarmport = init_str_list[init_str_list.indexOf("-alarmport") +1].toUShort();
+        }
+    }
+
     if (m_alarmip == "")
     {
         qDebug ( "IP address of fire alarm is not set.\n\r");
+
     }
     else
     {
-        m_alarmport = cmdline_args.value(cmdline_args.indexOf("-alarmport") +1).toUShort();
         if (m_alarmport <= 0)
         {
             qDebug ( "Port of fire alarm is not set.");
@@ -590,13 +759,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     // Dust equipment init
     
     m_dust_ip = cmdline_args.value(cmdline_args.indexOf("-dustip") +1);
+    m_dust_port = cmdline_args.value(cmdline_args.indexOf("-dustport") +1).toUShort();
+
+    if (m_dust_ip == "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-dustip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_dust_ip = init_str_list[init_str_list.indexOf("-dustip") +1];
+            m_dust_port = init_str_list[init_str_list.indexOf("-dustport") +1].toUShort();
+        }
+    }
+
     if (m_dust_ip == "")
     {
         qDebug ( "IP address of dust measure equipment is not set.\n\r");
     }
     else
     {
-        m_dust_port = cmdline_args.value(cmdline_args.indexOf("-dustport") +1).toUShort();
         if (m_dust_port <= 0)
         {
             qDebug ( "Port of dust measure equipment is not set.\n\r");
@@ -617,15 +805,35 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     
     // EDM init for tty...
     
-    if (cmdline_args.indexOf("-grimmip") >-1)
+    if (cmdline_args.indexOf("-grimmip") >-1){
         m_grimm_ip = cmdline_args.value(cmdline_args.indexOf("-grimmip") +1);
+        m_grimmport = cmdline_args.value(cmdline_args.indexOf("-grimmport") +1).toUShort();
+
+    }
+    else
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-grimmip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_grimm_ip = init_str_list[init_str_list.indexOf("-grimmip") +1];
+            m_grimmport = init_str_list[init_str_list.indexOf("-grimmport") +1].toUShort();
+        }
+    }
+
     if ( m_grimm_ip == "")
     {
         qDebug ( "IP address of the Grimm equipment is not set.\n\r");
     }
     else
     {
-        m_grimmport = cmdline_args.value(cmdline_args.indexOf("-grimmport") +1).toUShort();
         if (m_grimmport <= 0)
         {
             qDebug ("Error:  wrong data of the Grimm port parameter\n\r");
@@ -646,23 +854,47 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     // Meteostation init
     
     m_meteo_ip = cmdline_args.value(cmdline_args.indexOf("-meteoip") +1);
+    m_meteo_port = cmdline_args.value(cmdline_args.indexOf("-meteoport") +1).toUShort();
+    QString meteoparams = cmdline_args.value(cmdline_args.indexOf("-meteoparams") +1);
+
+    if (cmdline_args.indexOf("-meteomodel") > -1){
+        m_meteo_model = cmdline_args.value(cmdline_args.indexOf("-meteomodel") +1);
+    }
+
+    if (m_meteo_ip == "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-meteoip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_meteo_ip = init_str_list[init_str_list.indexOf("-meteoip") +1];
+            m_meteo_port = init_str_list[init_str_list.indexOf("-meteoport") +1].toUShort();
+            meteoparams = init_str_list[init_str_list.indexOf("-meteoparams") +1];
+            m_meteo_model = init_str_list[init_str_list.indexOf("-meteomodel") +1];
+
+        }
+    }
+
     if (m_meteo_ip == "")
     {
         qDebug ( "IP address of meteostation is not set.\n\r");
     }
     else
     {
-        m_meteo_port = cmdline_args.value(cmdline_args.indexOf("-meteoport") +1).toUShort();
         if (m_meteo_port <= 0)
         {
             qDebug ( "Port of meteostation is not set.");
         }
         else
         {
-            QString meteoparams = cmdline_args.value(cmdline_args.indexOf("-meteoparams") +1);
-            
-            
-            
+
             QSqlQuery *query= new QSqlQuery ("select * from sensors_data where typemeasure = 'Темп. внутренняя' order by date_time desc", *m_conn);
             qDebug() << "Temp. inner status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
             query->first();
@@ -680,9 +912,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             query->finish();
             
             
-            if (cmdline_args.indexOf("-meteomodel") > -1){
-                m_meteo_model = cmdline_args.value(cmdline_args.indexOf("-meteomodel") +1);
-            }
+
             
             if (m_meteo_model == ""){
                 if (meteoparams == "db")
@@ -710,13 +940,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     //  -serinusip 192.168.1.101
     
     m_serinus_ip = cmdline_args.value(cmdline_args.indexOf("-serinusip") +1);
+    m_serinus_port = cmdline_args.value(cmdline_args.indexOf("-serinusport") +1).toUShort();
+
+    if (m_serinus_ip == "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-serinusip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_serinus_ip = init_str_list[init_str_list.indexOf("-serinusip") +1];
+            m_serinus_port = init_str_list[init_str_list.indexOf("-serinusport") +1].toUShort();
+        }
+    }
+
     if (m_serinus_ip == "")
     {
         qDebug ( "IP address of the Serinus 51 is not set.\n\r");
     }
     else
     {
-        m_serinus_port = cmdline_args.value(cmdline_args.indexOf("-serinusport") +1).toUShort();
         if (m_serinus_port <= 0)
         {
             qDebug ( "Port of the Serinus 51 is not set.\n\r");
@@ -732,13 +981,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     
     m_serinus_ip55 = cmdline_args.value(cmdline_args.indexOf("-serinusip55") +1);
+    m_serinus_port55 = cmdline_args.value(cmdline_args.indexOf("-serinusport55") +1).toUShort();
+
+    if (m_serinus_ip55 == "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-serinusip55%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_serinus_ip55 = init_str_list[init_str_list.indexOf("-serinusip55") +1];
+            m_serinus_port55 = init_str_list[init_str_list.indexOf("-serinusport55") +1].toUShort();
+        }
+    }
+
     if (m_serinus_ip55 == "")
     {
         qDebug ( "IP address of the Serinus55 is not set.\n\r");
     }
     else
     {
-        m_serinus_port55 = cmdline_args.value(cmdline_args.indexOf("-serinusport55") +1).toUShort();
         if (m_serinus_port55 <= 0)
         {
             qDebug ( "Port of the Serinus55 is not set.\n\r");
@@ -754,13 +1022,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     
     m_serinus_ip50 = cmdline_args.value(cmdline_args.indexOf("-serinusip50") +1);
+    m_serinus_port50 = cmdline_args.value(cmdline_args.indexOf("-serinusport50") +1).toUShort();
+
+    if (m_serinus_ip50== "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-serinusip50%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_serinus_ip50 = init_str_list[init_str_list.indexOf("-serinusip50") +1];
+            m_serinus_port50 = init_str_list[init_str_list.indexOf("-serinusport50") +1].toUShort();
+        }
+    }
+
     if (m_serinus_ip50 == "")
     {
         qDebug ( "IP address of the Serinus50 is not set.\n\r");
     }
     else
     {
-        m_serinus_port50 = cmdline_args.value(cmdline_args.indexOf("-serinusport50") +1).toUShort();
         if (m_serinus_port50 <= 0)
         {
             qDebug ( "Port of the Serinus50 is not set.\n\r");
@@ -776,13 +1063,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     
     m_serinus_ip30 = cmdline_args.value(cmdline_args.indexOf("-serinusip30") +1);
+    m_serinus_port30 = cmdline_args.value(cmdline_args.indexOf("-serinusport30") +1).toUShort();
+
+    if (m_serinus_ip30== "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-serinusip30%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_serinus_ip30 = init_str_list[init_str_list.indexOf("-serinusip30") +1];
+            m_serinus_port30 = init_str_list[init_str_list.indexOf("-serinusport30") +1].toUShort();
+        }
+    }
+
     if (m_serinus_ip30 == "")
     {
         qDebug ( "IP address of the Serinus30 is not set.\n\r");
     }
     else
     {
-        m_serinus_port30 = cmdline_args.value(cmdline_args.indexOf("-serinusport30") +1).toUShort();
         if (m_serinus_port30 <= 0)
         {
             qDebug ( "Port of the Serinus30 is not set.\n\r");
@@ -798,13 +1104,33 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     
     m_serinus_ip44 = cmdline_args.value(cmdline_args.indexOf("-serinusip44") +1);
+    m_serinus_port44 = cmdline_args.value(cmdline_args.indexOf("-serinusport44") +1).toUShort();
+
+    if (m_serinus_ip44== "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-serinusip44%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_serinus_ip44 = init_str_list[init_str_list.indexOf("-serinusip44") +1];
+            m_serinus_port44 = init_str_list[init_str_list.indexOf("-serinusport44") +1].toUShort();
+        }
+    }
+
+
     if (m_serinus_ip44 == "")
     {
         qDebug ( "IP address of the Serinus44 is not set.\n\r");
     }
     else
     {
-        m_serinus_port44 = cmdline_args.value(cmdline_args.indexOf("-serinusport44") +1).toUShort();
         if (m_serinus_port44 <= 0)
         {
             qDebug ( "Port of the Serinus44 is not set.\n\r");
@@ -822,13 +1148,32 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     //  -ligaip 192.168.1.111 -ligaport 7120
     
     m_liga_ip = cmdline_args.value(cmdline_args.indexOf("-ligaip") +1);
+    m_liga_port = cmdline_args.value(cmdline_args.indexOf("-ligaport") +1).toUShort();
+
+    if (m_liga_ip== "")
+    {
+        if (status){
+            QSqlQuery *query= new QSqlQuery ("select * from service where init_str like '%-ligaip%' and is_active = 'true' and is_present = 'true'", *m_conn);
+            query->first();
+            QSqlRecord rec = query->record();
+
+            QString init_str = QString(rec.field("init_str").value().toString()).append(" ").append(rec.field("parameter").value().toString());
+            QStringList init_str_list = init_str.split(QLatin1Char(' '));
+
+            query->finish();
+            query->~QSqlQuery();
+
+            m_liga_ip = init_str_list[init_str_list.indexOf("-ligaip") +1];
+            m_liga_port = init_str_list[init_str_list.indexOf("-ligaport") +1].toUShort();
+        }
+    }
+
     if (m_liga_ip == "")
     {
         qDebug ( "IP address of the ACA-Liga is not set.\n\r");
     }
     else
     {
-        m_liga_port = cmdline_args.value(cmdline_args.indexOf("-ligaport") +1).toUShort();
         if (m_liga_port <= 0)
         {
             qDebug ( "Port of the ACA-Liga is not set.\n\r");
