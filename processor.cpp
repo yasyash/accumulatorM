@@ -3214,8 +3214,6 @@ void processor::readSocketStatus()
 
             m_ivtm->doQuery( [this](const QString & _key, const float & _val){
                 this->m_meteo->push_data(_key, _val);
-                if (!this->m_meteo->sample_t )
-                    this->m_meteo->sample_t = 1;
             });
         }
     }
