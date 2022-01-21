@@ -398,7 +398,15 @@ void MeteoTcpSock::readData()
 
                 while (_iter_meteo != measure->end())
                 {
-                    qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()) / sample_t);
+                    if ((_iter_meteo.key() == "temp_in") || (_iter_meteo.key() == "hum_in"))
+                    {
+                        qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()));
+                    }
+                    else
+                    {
+                        qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()) / sample_t);
+
+                    }
                     _iter_meteo++;
                 }
             } else {
