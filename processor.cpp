@@ -2590,11 +2590,30 @@ void processor::transactionDB(void)
                 
                 if (!m_meteo_uuid->value((meteo_iterator.key())).isNull())
                 {
-                    _query_ins.bindValue(":serialnum",QString( m_meteo_uuid->value(meteo_iterator.key()).toString().remove(QRegExp("[\\{\\}]"))));
-                    _query_ins.bindValue(":measure", meteo_iterator.value()/m_meteo->sample_t);
-                    
-                    _query_ins.bindValue(":typemeasure",m_meteo_types->value(meteo_iterator.key()));
-                    
+                    if (m_meteo->model){
+                        if ((meteo_iterator.key() == "temp_in") || (meteo_iterator.key() == "hum_in"))
+                        { //if model exists inside measure has only one sample
+                            _query_ins.bindValue(":serialnum",QString( m_meteo_uuid->value(meteo_iterator.key()).toString().remove(QRegExp("[\\{\\}]"))));
+                            _query_ins.bindValue(":measure", meteo_iterator.value());
+
+                            _query_ins.bindValue(":typemeasure",m_meteo_types->value(meteo_iterator.key()));
+                        }
+                        else
+                        {
+                            _query_ins.bindValue(":serialnum",QString( m_meteo_uuid->value(meteo_iterator.key()).toString().remove(QRegExp("[\\{\\}]"))));
+                            _query_ins.bindValue(":measure", meteo_iterator.value()/m_meteo->sample_t);
+
+                            _query_ins.bindValue(":typemeasure",m_meteo_types->value(meteo_iterator.key()));
+                        }
+                    }
+                    else
+                    {
+                        _query_ins.bindValue(":serialnum",QString( m_meteo_uuid->value(meteo_iterator.key()).toString().remove(QRegExp("[\\{\\}]"))));
+                        _query_ins.bindValue(":measure", meteo_iterator.value()/m_meteo->sample_t);
+
+                        _query_ins.bindValue(":typemeasure",m_meteo_types->value(meteo_iterator.key()));
+                    }
+
                     if (verbose)
                     {
                         qDebug() << "Transaction status to the main data table with meteo parameter " << m_meteo_types->value(meteo_iterator.key()) <<" is "<< ((_query_ins.exec() == true) ? "successful!" :  "not complete!\n\r");
@@ -2609,14 +2628,14 @@ void processor::transactionDB(void)
                         else
                         {
                             qDebug() << "Insertion to the  main data table with meteo parameter is not successful!\n\r";
-                            
+
                         }
                     }
                 }
             }
             if (!m_conn->isOpen())
                 m_conn->open();
-            
+
             if(!m_conn->isOpen())
             {
                 qDebug() << "Unable to reopen database connection!";
@@ -2637,12 +2656,12 @@ void processor::transactionDB(void)
                     else
                     {
                         qDebug() << "Insertion to the meteostation's table is not successful!\n\r";
-                        
+
                     }
                 }
-                
+
             }
-            
+
             query.finish();
             if (m_meteo){
                 m_meteo->measure->clear();
@@ -2653,42 +2672,42 @@ void processor::transactionDB(void)
             query_log.bindValue(":date_time", tmp_time );
             query_log.bindValue( ":type", 404 );
             query_log.bindValue(":descr", "Метеокомплекс на посту  " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + "  не отвечает..."  );
-            
+
             query_log.exec();
             // qDebug() << "Transaction status to the meteostation's table is " << ((query_log.exec() == true) ? "successful!" :  "not complete!");
             // qDebug() << "The last error is " << (( query_log.lastError().text().trimmed() == "") ? "absent" : query_log.lastError().text());
         }
     }
-    
-    
+
+
     //ACA-Liga slow fetch data but too fast comparing with the chromatography processing
     if (m_liga){
         m_liga->getLastResult();
         if (!m_liga->is_read)
         {
             fillSensorData(&m_liga->is_read, m_liga->measure);//copy data from object
-            
+
         } else { if (m_liga->error)
             {
                 query_log.bindValue(":date_time", tmp_time );
                 query_log.bindValue( ":type", 404 );
                 query_log.bindValue(":descr", "Хроматограф на посту  " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " работает с ошибкой." + m_liga->status  );
-                
+
                 query_log.exec();
-                
+
             }
-            
+
         }
-        
+
     }
-    
+
     //Sensor data processing
     bool is_static = false; // for PM static array indication
-    
+
     for (sensor = m_uuid->begin(); sensor != m_uuid->end(); ++sensor)
     {
         _key = sensor.key();
-        
+
         if ((sensor.key() == "Пыль общая") || (sensor.key() == "PM1") || (sensor.key() == "PM2.5") || (sensor.key() == "PM4") || (sensor.key() == "PM10")||
                 (sensor.key() == "Влажн. внешняя пылемера")||(sensor.key() == "Темп. внешняя пылемера"))
         {
@@ -2720,24 +2739,24 @@ void processor::transactionDB(void)
                             _key = sensor.key();
                         }
                     }
-                    
+
                 }
             }
         } else {
-            
+
             val = m_data->value(sensor.key(), -1);
             _key = sensor.key();
         }
-        
-        
-        
+
+
+
         if ((val != -1)&& ((m_measure->value(_key) > 0 ) || is_static) && ((m_status->value(_key)== MEASURING)||(m_status->value(_key)== UNKNOWN))){
             //QSqlQuery query = QSqlQuery(*m_conn);
             int _samples = m_measure->value(sensor.key(), 1);
-            
+
             query.prepare("INSERT INTO sensors_data (idd, serialnum, date_time, typemeasure, measure, is_alert) "
                           "VALUES (:idd, :serialnum, :date_time, :typemeasure, :measure, false)");
-            
+
             if ((sensor.key().indexOf("PM")!= -1) || (sensor.key().indexOf("Пыль общая")!= -1)||
                     (sensor.key().indexOf("HUM_PM")!= -1) || (sensor.key().indexOf("Влажн. внешняя пылемера")!= -1)||
                     (sensor.key().indexOf("TMP_PM")!= -1) || (sensor.key().indexOf("Темп. внешняя пылемера")!= -1))
@@ -2746,33 +2765,33 @@ void processor::transactionDB(void)
                 //if (sensor.key() == "Пыль общая")
                 // {
                 //    average = (float (val)) / m_measure->value("PM", 1) /m_range->value(sensor.key()); //Hardcoded for Cyrillic name of Dust total
-                
+
                 //} else {
-                
+
                 //     average = (float (val)) / m_measure->value(sensor.key(), 1) / 1000; //for dust measure range is less
                 //}
-                
+
                 if (is_static)
                 {
                     average = (float (val)) / ms_measure->value(_key, 1) / ms_range->value(_key, 1); //for dust measure range from static array
                     _samples = ms_measure->value(_key, 1);
-                    
+
                     ms_data->remove(_key);
                     ms_measure->remove(_key);
                 } else {
                     average = (float (val)) / m_measure->value(_key, 1) / m_range->value(_key, 1); //for dust measure range from static array
                     _samples = m_measure->value(_key, 1);
                 }
-                
+
             }
             else
             {
                 average = (float (val)) / m_measure->value(sensor.key(), 1) /m_range->value(sensor.key());
-                
+
             }
-            
-            
-            
+
+
+
             query.bindValue(":idd", QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")));
             query.bindValue(":serialnum",  QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]")));
             query.bindValue(":date_time", tmp_time);
@@ -2783,7 +2802,7 @@ void processor::transactionDB(void)
                         "\n\r measure ===" <<average << " and samples === " << _samples <<"\n\r";
             if (!m_conn->isOpen())
                 m_conn->open();
-            
+
             if(!m_conn->isOpen())
             {
                 qDebug() << "Unable to reopen database connection!\n\r";
@@ -2804,24 +2823,24 @@ void processor::transactionDB(void)
                     else
                     {
                         qDebug() << "Insertion is not successful!\n\r";
-                        
+
                     }
                 }
                 query.finish();
                 //  query.~QSqlQuery();
-                
+
                 m_data->remove(sensor.key());
                 m_measure->remove(sensor.key());
-                
-                
+
+
             }
-            
+
         }
         else { //logging error
             QMetaEnum metaEnum = QMetaEnum::fromType<processor::_status>();
-            
+
             if ((val == -1)&&(m_status->value(_key)!= ABSENT)) {//if measure is absend
-                
+
                 query_log.bindValue(":date_time", tmp_time );
                 query_log.bindValue( ":type", 404 );
                 query_log.bindValue(":descr", "Сенсор " + _key + "     " + QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]"))+"  на посту " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " не отвечает. Статус сенсора - "
@@ -2829,23 +2848,23 @@ void processor::transactionDB(void)
                 query_log.bindValue( ":idd", QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) );
                 query_log.exec();
             }
-            
+
             if (val != -1)
             {
                 //if instruments measure but not ready
-                
+
                 query_log.bindValue(":date_time", tmp_time );
                 query_log.bindValue( ":type", 404 );
                 query_log.bindValue(":descr", "Сенсор " + _key + "     " + QString(m_uuid->value(sensor.key()).toString()).remove(QRegExp("[\\{\\}]"))+"  на посту " + QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")) + " не отвечает. Статус серсора - "
                                     + metaEnum.valueToKey( m_status->value(_key)));
-                
+
                 query_log.exec();
-                
+
             }
-            
+
         }
-        
-        
+
+
     }
     query_log.finish();
     query.finish();
@@ -2880,24 +2899,24 @@ void processor::transactionDB(void)
         QDateTime UTC(local.toUTC());
         qint64 tz = QDateTime::currentDateTime().offsetFromUtc()/3600; //time zone
         QString o = QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 )));
-        
+
         qDebug() << "Rest API call is started...\n\r";
-        
-        
+
+
         QString select_st = "SELECT * FROM injection WHERE is_present = true and id = 2"; //id is hardcoded to 2 position
-        
+
         QSqlQuery *query_inj = new QSqlQuery(*m_conn);
         QSqlRecord rs_station;
-        
+
         query_inj->prepare(select_st);
         query_inj->exec();
-        
+
         //begin work
         if(!query_inj->lastError().isValid())
         {
             while (query_inj->next()) {
                 rs_station = query_inj->record();
-                
+
                 QString uri = QString(rs_station.value("uri").toString());
                 QString token = QString(rs_station.value("token").toString());
                 //QString locality = QString(rs_station.value("locality").toString());
@@ -2906,123 +2925,123 @@ void processor::transactionDB(void)
                 int code = rs_station.value("code").toInt();
                 double msg_id = rs_station.value("msg_id").toDouble();
                 int msg_id_out = rs_station.value("msg_id_out").toInt();
-                
-                
+
+
                 QString begin_t = QString(rs_station.value("date_time").toString());
                 QDateTime _begin_t = QDateTime::fromString(begin_t.left(19),"yyyy-MM-ddTHH:mm:ss");
-                
+
                 QString last_t = QString(rs_station.value("last_time").toString());
                 QDateTime _last_t = QDateTime::fromString(last_t.left(19),"yyyy-MM-ddTHH:mm:ss");
-                
+
                 QString curr_t = QDateTime(QDateTime::currentDateTime()).toString("yyyy-MM-ddThh:mm:ss");
                 QDateTime _curr_t = QDateTime::fromString(curr_t.left(19),"yyyy-MM-ddTHH:mm:ss");
-                
+
                 QDateTime _from_t = _begin_t.addSecs(1);
-                
+
                 if (_curr_t.addDays(-1) > _begin_t)
                     _from_t = _curr_t.addDays(-1);
-                
+
                 QDateTime __curr_t = _curr_t.addSecs(1);
                 qcollectorc *_qcollector = new qcollectorc(&_conn, idd, _from_t, __curr_t, _last_t, uri, code, token,  indx, msg_id, msg_id_out, this);
-                
+
                 m_threadPool->start(_qcollector);
             }
         }
     }
 
     //end section of external REST API call
-    
-    
+
+
 }
 void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
 {
-    
-    
+
+
     //m_conn = conn;
     QSqlQuery *query= new QSqlQuery ("select * from equipments where is_present = 'true' and measure_class = 'data'"
                                      "and idd = (select idd from stations where is_present = 'true') order by date_time_in", *conn);
     qDebug() << "Try to add data UUID sensors... status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
     query->first();
     QSqlRecord rec = query->record();
-    
+
     if (!m_transactTime){
         m_transactTimer->start(rec.field("average_period").value().toInt() *1000);
     } else {
         m_transactTimer->start(*m_transactTime * 1000);
     }
-    
+
     if( !m_pollTimer->isActive() )
     {
         m_transactTimer->stop();
     }
-    
+
     m_uuidStation  = new QUuid(rec.field("idd").value().toUuid());
-    
-    
+
+
     for (int i = 0; i < query->size(); i++ )
     {
         qDebug() << query->value("typemeasure").toString() << "  -----  "<< query->value("serialnum").toUuid() <<"\n\r";
-        
+
         m_uuid->insert( query->value("typemeasure").toString(), query->value("serialnum").toUuid());
-        
+
         query->next();
     }
     query->finish();
-    
+
     //meteo sensors UUID loading
-    
+
     *query=  QSqlQuery ("select * from equipments where is_present = 'true' and measure_class <> 'data' and measure_class <> 'alert'"
                         "and idd = (select idd from stations where is_present = 'true') order by date_time_in", *conn);
     rec.clear();
-    
+
     qDebug() << "Try to add UUID meteosensors... status is " <<   query->isActive() << " and err " << query->lastError().text() << "\n\r";
-    
+
     query->first();
     rec = query->record();
-    
+
     for (int i = 0; i < query->size(); i++ )
     {
         qDebug() << query->value("typemeasure").toString() << "  -----  "<< query->value("serialnum").toUuid() <<"\n\r";
-        
+
         m_meteo_uuid->insert( query->value("measure_class").toString(), query->value("serialnum").toUuid());
         m_meteo_types->insert(query->value("measure_class").toString(), query->value("typemeasure").toString());
-        
+
         query->next();
     }
-    
+
     query->finish();
     rec.clear();
 }
 
 void  processor::initStatus()
 {
-    
+
     if ((m_modbusip))
     {
         m_status->insert("CO", UNKNOWN);
         m_status->insert("NO2", UNKNOWN);
         m_status->insert("NO", UNKNOWN);
-        
+
         m_status->insert("O3", UNKNOWN);
         m_status->insert("NH3", UNKNOWN);
         m_status->insert("CH2O", UNKNOWN);
-        
+
     }
-    
+
     if ((m_serinus44))
     {
         m_status->insert("NO2", UNKNOWN);
         m_status->insert("NO", UNKNOWN);
         m_status->insert("NH3", UNKNOWN);
         m_status->insert("NOx", UNKNOWN);
-        
+
     }
-    
+
     if (m_serinus30){
         m_status->insert("CO", UNKNOWN);
-        
+
     }
-    
+
     if (m_serinus50)
         m_status->insert("SO2", UNKNOWN);
 
@@ -3033,9 +3052,9 @@ void  processor::initStatus()
         m_status->insert("SO2", UNKNOWN);
         m_status->insert("H2S", UNKNOWN);
     }
-    
-    
-    
+
+
+
     if (m_liga){
         m_status->insert("бензол", UNKNOWN);
         m_status->insert("толуол", UNKNOWN);
@@ -3051,18 +3070,18 @@ void  processor::initStatus()
         m_status->insert("Напряжение мин.", UNKNOWN);
         m_status->insert("Напряжение макс.", UNKNOWN);
     }
-    
+
     if (m_topasip || m_dust || m_grimm){
         m_status->insert("PM", UNKNOWN);
         m_status->insert("PM1", UNKNOWN);
         m_status->insert("PM2.5", UNKNOWN);
         m_status->insert("PM4", UNKNOWN);
         m_status->insert("PM10", UNKNOWN);
-        
-        
+
+
     }
-    
-    
+
+
     //GammaET elements
     if (m_gammaet)
     {
@@ -3102,19 +3121,19 @@ void  processor::initStatus()
 //Read the status of devices that are connected via TCP
 void processor::readSocketStatus()
 {
-    
-    
+
+
     QString tmp_type_measure;
     QStringList dust = {"PM1", "PM2.5", "PM4", "PM10", "PM"  };
     int tmp;
-    
-    
+
+
     int j = 0;
     QMap<int, int>::iterator slave;
     //if( m_tcpActive )
     //  ui->tcpSettingsWidget->tcpConnect();
-    
-    
+
+
     // MODBUS ip
     if (m_modbusip){
         for (slave = m_pool->begin(); slave != m_pool->end(); ++slave)
@@ -3128,18 +3147,18 @@ void processor::readSocketStatus()
             //m_threadPoolSlowProcess->start(m_modbusip);
         }
     }
-    
+
     // GammaET MODBUS ip
     if (m_gammaet){
         for (slave = m_gammapool->begin(); slave != m_gammapool->end(); ++slave)
         {
             //tmp_type_measure.clear();
             m_gammaet->sendData(slave.key(), slave.value());
-            
+
         }
     }
-    
-    
+
+
     //Dust data reading
     if (m_dust){
         if (m_dust->connected){
@@ -3147,12 +3166,12 @@ void processor::readSocketStatus()
             //while (!m_dust->is_read);
             m_dust->is_read = false;
             //qDebug() << "count " << dust.length() <<"\n\r";
-            
+
             for (int i = 0; i < dust.length(); i++)
             {
                 tmp_type_measure = dust[i];
                 tmp = m_data->value(tmp_type_measure, -1); //detect first measure
-                
+
                 if ( tmp == -1)
                 {
                     if (m_dust->measure->value(tmp_type_measure) >0)
@@ -3172,9 +3191,9 @@ void processor::readSocketStatus()
                     }
                 }
             }
-            
+
             // }
-            
+
             m_dust->measure->clear();
         }
     }
@@ -3186,13 +3205,13 @@ void processor::readSocketStatus()
             } else {
                 m_meteo->sendData("LPS 2 1");//sendData("LOOP 1");
             }
-            
+
         }
-        
+
         // IVTM data reading with gamma function as callback method meteo data filling
-        
+
         if (m_ivtm){
-            
+
             m_ivtm->doQuery( [this](const QString & _key, const float & _val){
                 this->m_meteo->push_data(_key, _val);
                 if (!this->m_meteo->sample_t )
@@ -3201,7 +3220,7 @@ void processor::readSocketStatus()
         }
     }
     //m_liga->getLastResult();
-    
+
     //UPS acqusition data reading
     if (m_ups){
         if (m_ups->err_count <10){ //minimum error threshold
@@ -3209,19 +3228,19 @@ void processor::readSocketStatus()
             if (!m_measure->value("Напряжение мин."))
             {   m_data->insert("Напряжение мин.", m_ups->voltage);
                 m_measure->insert("Напряжение мин.", 1); //we don't interested in average voltage - we need lowest or highest values
-                
+
             }
-            
+
             if (!m_measure->value("Напряжение макс."))
             {   m_data->insert("Напряжение макс.", m_ups->voltage);
                 m_measure->insert("Напряжение макс.", 1); //we don't interested in average voltage - we need lowest or highest values
-                
+
             }
             if (m_ups) {
                 if (m_ups->voltage < m_data->value("Напряжение мин.")){
                     m_data->insert("Напряжение мин.", m_ups->voltage);
                 }
-                
+
                 if (m_ups->voltage > m_data->value("Напряжение макс.")){
                     m_data->insert("Напряжение макс.", m_ups->voltage);
                 }
@@ -3230,7 +3249,7 @@ void processor::readSocketStatus()
     }
     //Alarm data reading
     if (m_fire) {
-        
+
         qDebug() << "Alarm messages is  "<< m_fire->surgardI->m_event->count() <<"\n\r";
     }
     // Read Serinus status
@@ -3239,66 +3258,66 @@ void processor::readSocketStatus()
         {   m_serinus->readStatus();
             m_serinus->readGases(2);
             if(verbose)
-                
+
                 qDebug()<< "\n\rSerinus 51 read command sent\n\r";
-            
-            
+
+
         }
     }
-    
+
     if (m_serinus50) {
         if (m_serinus50->connected)
         {   m_serinus50->readStatus();
             m_serinus50->readGases(1);
             if(verbose)
-                
+
                 qDebug()<< "\n\rSerinus 50 read command sent\n\r" ;
-            
-            
+
+
         }
     }
-    
+
     if (m_serinus55) {
         if (m_serinus55->connected)
         {
             m_serinus55->readStatus();
             m_serinus55->readGases(1);
             if(verbose)
-                
+
                 qDebug()<< "\n\rSerinus 55 read command sent\n\r" ;
-            
-            
+
+
         }
     }
-    
+
     if (m_serinus30) {
         if (m_serinus30->connected)
         {
             m_serinus30->readStatus();
             m_serinus30->readGases(1);
             if(verbose)
-                
+
                 qDebug()<< "\n\rSerinus 30 read command sent\n\r" ;
-            
-            
+
+
         }
     }
-    
+
     if (m_serinus44) {
         if (m_serinus44->connected)
         {
             m_serinus44->readStatus();
             m_serinus44->readGases(4);
-            
+
             if(verbose)
-                
+
                 qDebug()<< "\n\rSerinus 44  read command sent\n\r" ;
-            
-            
+
+
         }
     }
-    
-    
+
+
     if (m_topasip)
     {
         if (m_topasip->lastCommand == "")
@@ -3308,7 +3327,7 @@ void processor::readSocketStatus()
         m_topasip->readSample();
         //m_topasip->readSample();
     }
-    
+
     if (m_envea_so2)
     {
         m_envea_so2->readGases(1);
@@ -3368,9 +3387,9 @@ void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, 
 void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample,  QMap<QString, _status> *_status)
 {
     QMap<QString, float>::iterator sensor;
-    
-    
-    
+
+
+
     for (sensor = _measure->begin(); sensor != _measure->end(); ++sensor)
     {
         if (_sample->value(sensor.key())>0)
@@ -3378,77 +3397,77 @@ void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, 
             m_data->insert(sensor.key(), int(_measure->value(sensor.key()) *m_range->value(sensor.key())) + m_data->value(sensor.key()));
             m_measure->insert(sensor.key(), m_measure->value(sensor.key()) + _sample->value(sensor.key()));
             m_status->insert(sensor.key(), _status->value(sensor.key()));
-            
+
             //  _measure->insert(sensor.key(), 0 );
             // _sample->insert(sensor.key(), 0);
         }
-        
+
     }
     *_is_read = true;
-    
+
 }
 
 void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample)
 {
     QMap<QString, float>::iterator sensor;
-    
-    
-    
+
+
+
     for (sensor = _measure->begin(); sensor != _measure->end(); ++sensor)
     {
         if (_sample->value(sensor.key())>0)
         {
             m_data->insert(sensor.key(), int(_measure->value(sensor.key()) *m_range->value(sensor.key())) + m_data->value(sensor.key()));
             m_measure->insert(sensor.key(), m_measure->value(sensor.key()) + _sample->value(sensor.key()));
-            
+
         }
-        
+
     }
     *_is_read = true;
-    
+
 }
 
 void processor::fillSensorData( bool *_is_read, QMap<QString, float> *_measure)
 {
     QMap<QString, float>::iterator sensor;
-    
-    
-    
+
+
+
     for (sensor = _measure->begin(); sensor != _measure->end(); ++sensor)
     {
-        
+
         m_data->insert(sensor.key(), int(_measure->value(sensor.key()) *m_range->value(sensor.key())) );
         m_measure->insert(sensor.key(), 1);
-        
+
     }
     *_is_read = true;
-    
+
 }
 
 void processor::static_fillSensorData(bool *_is_read, QMap<QString, float> *_measure, QMap<QString, int> *_sample)
 {
     QMap<QString, float>::iterator sensor;
-    
-    
-    
+
+
+
     for (sensor = _measure->begin(); sensor != _measure->end(); ++sensor)
     {
-        
+
         ms_data->insert(sensor.key(),  ms_data->value(sensor.key()) + int(_measure->value(sensor.key()) *ms_range->value(sensor.key())) );
         ms_measure->insert(sensor.key(), ms_measure->value(sensor.key()) + 1);
         _measure->insert(sensor.key(), 0 );
         _sample->insert(sensor.key(), 0);
     }
     *_is_read = true;
-    
+
 }
 
 void processor::fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample, QMap<QString, _status> *_status)
 {
     QMap<QString, int>::iterator sensor;
-    
-    
-    
+
+
+
     for (sensor = _measure->begin(); sensor != _measure->end(); ++sensor)
     {
         if (_sample->value(sensor.key())>0)
@@ -3458,21 +3477,21 @@ void processor::fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measu
             m_status->insert(sensor.key(), _status->value(sensor.key()));
             _measure->insert(sensor.key(), 0 );
             _sample->insert(sensor.key(), 0);
-            
-            
+
+
         }
-        
+
     }
     *_is_read = true;
-    
+
 }
 
 void processor::fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measure, QMap<QString, int> *_sample)
 {
     QMap<QString, int>::iterator sensor;
-    
-    
-    
+
+
+
     for (sensor = _measure->begin(); sensor != _measure->end(); ++sensor)
     {
         if (_sample->value(sensor.key())>0)
@@ -3481,11 +3500,11 @@ void processor::fillSensorDataModbus( bool *_is_read, QMap<QString, int> *_measu
             m_measure->insert(sensor.key(), m_measure->value(sensor.key()) + _sample->value(sensor.key()));
             _measure->insert(sensor.key(), 0 );
             _sample->insert(sensor.key(), 0);
-            
+
         }
-        
+
     }
     *_is_read = true;
-    
+
 }
 
