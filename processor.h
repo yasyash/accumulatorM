@@ -236,6 +236,8 @@ private:
     TopasIP *m_topasip = nullptr;
     QString m_topas_ip;
     quint16 m_topas_port;
+    QString m_topas_num;
+
 
     GammaET *m_gammaet = nullptr;
     QString m_gammaet_ip;

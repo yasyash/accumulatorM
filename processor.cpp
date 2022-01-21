@@ -623,11 +623,10 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     }
     
     //topas init
-    QString _serialnum;
     if (cmdline_args.indexOf("-topasip") > -1){
         m_topas_ip = cmdline_args.value(cmdline_args.indexOf("-topasip") +1);
         m_topas_port = cmdline_args.value(cmdline_args.indexOf("-topasport") +1).toUShort();
-        QString _serialnum = cmdline_args.value(cmdline_args.indexOf("-topasnum") +1);
+        m_topas_num = cmdline_args.value(cmdline_args.indexOf("-topasnum") +1);
 
     }
     else
@@ -645,7 +644,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
             m_topas_ip = init_str_list[init_str_list.indexOf("-topasip") +1];
             m_topas_port = init_str_list[init_str_list.indexOf("-topasport") +1].toUShort();
-            _serialnum = init_str_list[init_str_list.indexOf("-topasnum") +1];
+            m_topas_num = init_str_list[init_str_list.indexOf("-topasnum") +1];
         }
     }
 
@@ -662,13 +661,13 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         }
         else
         {
-            if (_serialnum == "")
+            if (m_topas_num == "")
             {
                 qDebug ("TOPAS serial number ia absend error:  expected parameter\n\r");
             }
             else
             {
-                m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &_serialnum);
+                m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &m_topas_num);
                 if (m_topasip){
                     connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
                     
@@ -2294,10 +2293,8 @@ void processor::renovateSlaveID( void )
         if (!m_topasip->connected)
         {
             m_topasip->~TopasIP();
-            
-            
-            QString _serialnum = m_topasip->serialnum;
-            m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &_serialnum);
+                        
+            m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &m_topas_num);
             if (m_topasip){
                 connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
             }
