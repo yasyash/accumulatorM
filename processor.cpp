@@ -2293,7 +2293,7 @@ void processor::renovateSlaveID( void )
         if (!m_topasip->connected)
         {
             m_topasip->~TopasIP();
-                        
+
             m_topasip = new TopasIP(this, &m_topas_ip, &m_topas_port, &m_topas_num);
             if (m_topasip){
                 connect(m_topasip, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
@@ -2567,8 +2567,25 @@ void processor::transactionDB(void)
                 }
                 else
                 {
-                    qDebug() << "Мeteo - "<< meteo_iterator.key() << " samples = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
-                    query.bindValue(QString(":").append(meteo_iterator.key()), meteo_iterator.value()/m_meteo->sample_t);
+                    if (m_meteo->model){
+                        if ((meteo_iterator.key() == "temp_in") || (meteo_iterator.key() == "hum_in"))
+                        { //if model exists inside measure has only one sample
+                            qDebug() << "Мeteo - "<< meteo_iterator.key() << " and value = "<< meteo_iterator.value();
+                            query.bindValue(QString(":").append(meteo_iterator.key()), meteo_iterator.value());
+                        }
+                        else
+                        {
+                            qDebug() << "Мeteo - "<< meteo_iterator.key() << " samples = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
+                            query.bindValue(QString(":").append(meteo_iterator.key()), meteo_iterator.value()/m_meteo->sample_t);
+                        }
+
+                    }
+                    else
+                    {
+                        qDebug() << "Мeteo - "<< meteo_iterator.key() << " samples = " << m_meteo->sample_t<< " and value = "<< meteo_iterator.value()/m_meteo->sample_t;
+                        query.bindValue(QString(":").append(meteo_iterator.key()), meteo_iterator.value()/m_meteo->sample_t);
+                    }
+
                 }
                 
                 if (!m_meteo_uuid->value((meteo_iterator.key())).isNull())
