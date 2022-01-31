@@ -284,6 +284,7 @@ void MeteoTcpSock::readData()
 
     //emit (dataReady(data));
 
+    qDebug() << "\n\rMeteostation data: \n\r" << data << "\n\r";
 
     blockSize = 0;
     if (model && data.length()>50)
@@ -408,6 +409,7 @@ void MeteoTcpSock::readData()
 
                     }
                     _iter_meteo++;
+
                 }
             } else {
                 qDebug() << "Meteostation's data parsed \n\r" ;
