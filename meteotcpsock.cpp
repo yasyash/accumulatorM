@@ -286,7 +286,7 @@ void MeteoTcpSock::readData()
 
 
     blockSize = 0;
-    if (model)
+    if (model && data.length()>50)
     {
         //for the model
         //QString _tmp = QString::fromStdString(data.toStdString());
