@@ -65,6 +65,8 @@ private:
     int     *m_port;
     bool first_run = true;
 
+    QByteArray data;
+
 public:
     //enum _status {Idle, Waiting, Running};
     enum _command {RDMN, MSTATUS, MSTART, MSTOP, RMMEAS};
