@@ -66,7 +66,7 @@ void funcSuccess(const QJsonObject &_resp,const QString &uri,const QDateTime &_d
         query_inj->prepare(_update);
         query_inj->exec();
 
-        if(!query_inj ->lastError().isValid())
+        if(!query_inj->lastError().isValid())
         {
             query_inj->finish();
 
@@ -84,6 +84,8 @@ void funcSuccess(const QJsonObject &_resp,const QString &uri,const QDateTime &_d
             query_inj->prepare(_insert);
             query_inj->exec();
 
+        } else {
+            QTextStream(stdout) << "!!! Database update error (INJECTION table): "<< query_inj->lastError().text() <<"  \n\r";
         }
         query_inj->finish();
         QTextStream(stdout) << "Success REST API response: Time is "+ _last_time.toString("yyyy-MM-dd HH:mm:ss") + " ID message = "  + QString::number(_msg_id) + " Response time = "<< QString::number(_now.toMSecsSinceEpoch() -  _date_time.toMSecsSinceEpoch()) <<" ms. \n\r";
