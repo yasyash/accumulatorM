@@ -165,7 +165,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             query->finish();
             query->~QSqlQuery();
 
-            if (init_str_list.indexOf("-upsip") >= 0){
+            if (init_str_list.indexOf("-ggo") >= 0){
                 ggo = true;
                 qDebug () << "Transmit to GGO is working from DB settings!\n\r";
             }
