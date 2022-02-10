@@ -19,8 +19,9 @@
 
 
 #include "qcollectorc.h"
+#include "QTextCodec"
 
-qcollectorc::qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t, QDateTime &_to_t, QDateTime &_last_t, QString &uri, int &code, QString &token, QString &locality, double &msg_id, int &msg_id_out, QObject *parent = 0 ) : QObject(parent)
+qcollectorc::qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t, QDateTime &_to_t, QDateTime &_last_t, QString &uri, int &code, QString &token, QString &locality, double &msg_id, int &msg_id_out, QObject *parent = 0, bool _verbose) : QObject(parent)
 {
     m_conn = new QSqlDatabase(*_conn);
 
@@ -33,6 +34,11 @@ qcollectorc::qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t,
         QTextStream(stdout) << ( QString("Connection " + m_conn->connectionName() + " error: " + m_conn->lastError().text()).toLatin1().constData()) <<   " \n\r";
 
     } else {
+
+        QTextCodec *utfcodec = QTextCodec::codecForName("UTF-8");
+
+        QTextCodec::setCodecForLocale(utfcodec);
+
         m_idd = idd;
         m_from_t = _from_t;
         m_to_t = _to_t;
@@ -43,6 +49,8 @@ qcollectorc::qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t,
         m_locality = locality;
         m_msg_id = msg_id;
         m_msg_id_out = msg_id_out;
+        if (_verbose)
+            verbose = true;
     }
 }
 
@@ -186,8 +194,8 @@ void qcollectorc::run ()
             if (_to_t_local > m_to_t)
                 _go_out = true;
 
-            QJsonArray _params;
-
+            //QJsonArray _params;
+            QHash<QString, QString> _params;
             // query_eq->first();
 
             while (query_eq->next()) {
@@ -201,6 +209,8 @@ void qcollectorc::run ()
                     query_data->bindValue(":_to", _to_t_local.toString("yyyy-MM-ddTHH:mm:ss"));
                     query_data->bindValue(":_serialnum", rs_sensor.field("serialnum").value().toString());
                     QString _t =  rs_sensor.field("serialnum").value().toString();
+                    QString _type = rs_sensor.field("typemeasure").value().toString();
+
                     query_data->exec();
                     //query_data->first();
                     if(!query_data->lastError().isValid())
@@ -213,8 +223,28 @@ void qcollectorc::run ()
                                 _measure += rs_data.field("measure").value().toDouble();
                             }
                             _data_one = {{"date_time",rs_data.field("date_time").value().toString().append(QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 ))))},{"unit",rs_sensor.field("unit_name").value().toString()},{"measure", _measure/query_data->size()}};
-                            QJsonObject _chemical_one = {{aspiap_dir.value(rs_sensor.field("typemeasure").value().toString()),_data_one}};
-                            _params.append(QJsonValue( _chemical_one));
+                            //QJsonObject _chemical_one = {{aspiap_dir.value(rs_sensor.field("typemeasure").value().toString()),_data_one}};
+
+                            //QJsonObject _chemical_one;
+                            //QJsonValue _chemical_one;
+                            QHash<QString, QString> _chemical_one;
+
+                            if (aspiap_dir.value(_type) != "")
+                            {
+                                //_chemical_one = {{aspiap_dir.value(_type), _data_one}};
+                                QJsonDocument _jd = QJsonDocument(_data_one);
+                                _chemical_one = {{aspiap_dir.value(_type), _jd.toJson(QJsonDocument::Compact)}};
+                                _params.insert(aspiap_dir.value(_type), _jd.toJson(QJsonDocument::Compact));
+                                //_params.append({{aspiap_dir.value(_type), _data_one}});
+                                // _chemical_one.toObject().insert(aspiap_dir.value(_type), _data_one);
+                            } else {
+                                // _chemical_one = {{_type, _data_one}};
+                                QJsonDocument _jd = QJsonDocument(_data_one);
+                                _chemical_one = {{_type, _jd.toJson(QJsonDocument::Compact)}};
+                                _params.insert(_type, _jd.toJson(QJsonDocument::Compact));
+
+                            }
+
                         }
                     }
                 }
@@ -222,36 +252,57 @@ void qcollectorc::run ()
 
 
             if (_params.size() > 0){
+
+                QHashIterator<QString, QString> i(_params);
+                QString _json;
+                _json.insert(0,"{");
+                while (i.hasNext()) {
+                    i.next();
+                    _json.append("\"");
+                    _json.append(i.key().toLocal8Bit());
+                    _json.append("\":");
+                    _json.append(i.value());
+                    if (i.hasNext())
+                        _json.append(", ");
+
+                }
+                _json.append("}");
+
                 Requester *_req = new Requester();
 
                 _req->initRequester(m_uri,443, nullptr);
 
-                QHttpMultiPart multiPart;
+                QHttpMultiPart multiPart(QHttpMultiPart::FormDataType);
                 QHttpPart _http_form;
                 QByteArray _body_tmp;
 
                 QDateTime _now = QDateTime::currentDateTime();
 
-                QJsonObject _header = {{"token", m_token},{"message",QString().number( (m_msg_id_out+=1))},{"locality", m_locality},{"object", m_code},{"date_time", _now.toString("yyyy-MM-dd HH:mm:ss").append(QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 ))))},
-                                       {"params", _params}};
+                QJsonObject _header = {{"token", m_token},{"message",QString().number( (m_msg_id_out+=1))},{"locality", m_locality},{"object", m_code},{"date_time", _now.toString("yyyy-MM-dd HH:mm:ss").append(QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 ))))}};
 
                 QJsonDocument doc = QJsonDocument(_header);
                 _body_tmp = doc.toJson(QJsonDocument::Compact);
 
+                _body_tmp.chop(1);
+                QString  _body = QString(_body_tmp );
+                _body.append(", \"params\":");
+                _body.append(_json);
+                _body.append("}");
 
+                    QByteArray _tmp = _body.toUtf8();
+
+                //_http_form.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
                 _http_form.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data;  name=\"data\""));
-                _http_form.setBody(_body_tmp);
+                _http_form.setBody(_tmp);
                 multiPart.append(_http_form);
                 multiPart.setBoundary("---");
 
                 //try to send request
-                //void (qcollectorc::*funcS)(const QJsonObject &, const QString &, const QDateTime &, const QDateTime &, const int &,  QSqlDatabase *, const QString &);
-                //void (qcollectorc::*funcE)(const QJsonObject &, const QString &, const QDateTime &, const QDateTime &, const int &,  QSqlDatabase *, const QString &);
 
-                // funcE = &qcollectorc::funcError;
-                // funcS = &qcollectorc::funcSuccess;
+                if (verbose)
+                    qDebug()<< "DATA send:  \n\r" << _tmp << "\n\r";
 
-                _req->sendRequest(funcSuccess, funcError, Requester::Type::POST, &multiPart, m_uri, _now, _from_t_local, m_msg_id_out, m_conn, m_idd);
+                    _req->sendRequest(funcSuccess, funcError, Requester::Type::POST, &multiPart, m_uri, _now, _from_t_local, m_msg_id_out, m_conn, m_idd);
 
             }
             query_eq->exec();

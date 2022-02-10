@@ -90,6 +90,56 @@ void Requester::sendRequest(const handleFuncExt &funcSuccess,
     QNetworkReply *reply;
     switch (type) {
     case Type::POST: {
+        request.setRawHeader(QByteArray("User-Agent"), QByteArray("Fetcher/").append(QByteArray::number(APP_VERSION)));
+        reply = manager->post(request, data);
+        break;
+    } case Type::GET: {
+        reply = manager->get(request);
+        break;
+    }
+    default:
+        reply = nullptr;
+        Q_ASSERT(false);
+    }
+    connect(reply, &QNetworkReply::finished, this,
+            [this, funcSuccess, funcError, reply, &_event_loop, uri, _date_time, _last_time, _msg_id, m_conn, idd]() {
+        QJsonObject obj = parseReply(reply);
+        if (onFinishRequest(reply)) {
+            if (funcSuccess != nullptr)
+                funcSuccess(obj, uri, _date_time, _last_time, _msg_id, m_conn, idd);
+        } else {
+            if (funcError != nullptr) {
+                handleQtNetworkErrors(reply, obj);
+                funcError(obj, uri, _date_time, _last_time, _msg_id, m_conn, idd);
+            }
+        }
+
+        reply->close();
+        reply->deleteLater();
+
+        _event_loop.quit();
+    });
+
+    _event_loop.exec();
+}
+
+void Requester::sendRequest(const handleFuncExt &funcSuccess,
+                            const handleFuncExt &funcError,
+                            Requester::Type type,
+                            QByteArray &data,
+                            const QString uri,
+                            const QDateTime &_date_time,
+                            const  QDateTime &_last_time,
+                            const int &_msg_id,
+                            QSqlDatabase * m_conn,
+                            const QString &idd)
+{
+    QNetworkRequest request = createRequest(QByteArray("multipart/form-data; boundary=---"));
+    QEventLoop _event_loop;
+
+    QNetworkReply *reply;
+    switch (type) {
+    case Type::POST: {
         reply = manager->post(request, data);
         break;
     } case Type::GET: {

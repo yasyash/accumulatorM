@@ -12,6 +12,7 @@
 #include <functional>
 #include <QEventLoop>
 #include <QSqlDatabase>
+#include <QHttpPart>
 
 class Requester : public QObject
 {
@@ -54,7 +55,16 @@ public:
                     const int &_msg_id,
                       QSqlDatabase * m_conn,
                     const QString &idd);
-
+    void sendRequest(const handleFuncExt &funcSuccess,
+                     const handleFuncExt &funcError,
+                     Requester::Type type,
+                     QByteArray &data,
+                     const QString uri,
+                     const QDateTime &_date_time,
+                    const  QDateTime &_last_time,
+                    const int &_msg_id,
+                      QSqlDatabase * m_conn,
+                    const QString &idd);
     void sendMulishGetRequest(const QString &apiStr,
                               const handleFunc &funcSuccess,
                               const handleFunc &funcError,

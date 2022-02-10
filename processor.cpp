@@ -2994,7 +2994,7 @@ void processor::transactionDB(void)
                     _from_t = _curr_t.addDays(-1);
 
                 QDateTime __curr_t = _curr_t.addSecs(1);
-                qcollectorc *_qcollector = new qcollectorc(&_conn, idd, _from_t, __curr_t, _last_t, uri, code, token,  indx, msg_id, msg_id_out, this);
+                qcollectorc *_qcollector = new qcollectorc(&_conn, idd, _from_t, __curr_t, _last_t, uri, code, token,  indx, msg_id, msg_id_out, this, verbose);
 
                 m_threadPool->start(_qcollector);
             }
