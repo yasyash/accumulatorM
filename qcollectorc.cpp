@@ -21,7 +21,7 @@
 #include "qcollectorc.h"
 #include "QTextCodec"
 
-qcollectorc::qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t, QDateTime &_to_t, QDateTime &_last_t, QString &uri, int &code, QString &token, QString &locality, double &msg_id, int &msg_id_out, QObject *parent = 0, bool _verbose) : QObject(parent)
+qcollectorc::qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t, QDateTime &_to_t, QDateTime &_last_t, QString &uri, int &code, QString &token, QString &locality, double &msg_id, int &msg_id_out, QObject *parent = 0, bool _verbose, bool _frame20) : QObject(parent)
 {
     m_conn = new QSqlDatabase(*_conn);
 
@@ -51,6 +51,8 @@ qcollectorc::qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t,
         m_msg_id_out = msg_id_out;
         if (_verbose)
             verbose = true;
+        if (_frame20)
+            frame20 = true;
     }
 }
 
@@ -154,6 +156,12 @@ void qcollectorc::run ()
     QSqlQuery *query_eq = new QSqlQuery(*m_conn);
     QSqlRecord rs_sensor;
     QDateTime _begin_t = m_from_t;
+    QDateTime time1;
+
+    int _frame20 = 0;
+
+    if (frame20)
+        _frame20 = 20;
 
     query_eq->prepare(select_eq);
     query_eq->exec();
@@ -181,7 +189,27 @@ void qcollectorc::run ()
     } else {
         _go_out = false;
     }
+    if (frame20){
+        int curr_min =  _begin_t.toString("mm").toInt();
+        int curr_sec =  _begin_t.toString("ss").toInt();
+        int to_sec = m_to_t.toString("ss").toInt();
+        m_to_t = m_to_t.addSecs(-to_sec); //frame alignment to the 00 seconds
 
+        if (curr_min < 19)
+        {
+            _begin_t = _begin_t.addSecs( - curr_min * 60 - 60 - curr_sec);
+        }
+
+        if ((curr_min >= 19) && (curr_min < 39))
+        {
+            _begin_t = _begin_t.addSecs(20*60 - curr_min * 60 - 60 - curr_sec);
+        }
+
+        if ((curr_min >= 39) && (curr_min < 59))
+        {
+            _begin_t = _begin_t.addSecs(40*60 - curr_min * 60 - 60 - curr_sec);
+        }
+    }
     //begin work
     if(!query_eq->lastError().isValid())
     {
@@ -189,9 +217,9 @@ void qcollectorc::run ()
 
         while (!_go_out) {
 
-            QDateTime _from_t_local = _begin_t.addSecs(i*60);
-            QDateTime _to_t_local = _begin_t.addMSecs(i*60000+59999 ); //add 999 mSec for 'between' sql frame
-            if (_to_t_local > m_to_t)
+            QDateTime _from_t_local = _begin_t.addSecs(i*60 * (frame20 ? 0 : 1) + 60*_frame20*i);
+            QDateTime _to_t_local = _begin_t.addMSecs(i*60000 + 59999 * (frame20 ? 0 : 1) + 60000*_frame20*(i+1)); //add 999 mSec for 'between' sql frame
+            if (_to_t_local >= m_to_t)
                 _go_out = true;
 
             //QJsonArray _params;
@@ -289,7 +317,7 @@ void qcollectorc::run ()
                 _body.append(_json);
                 _body.append("}");
 
-                    QByteArray _tmp = _body.toUtf8();
+                QByteArray _tmp = _body.toUtf8();
 
                 //_http_form.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
                 _http_form.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data;  name=\"data\""));
@@ -302,8 +330,14 @@ void qcollectorc::run ()
                 if (verbose)
                     qDebug()<< "DATA send:  \n\r" << _tmp << "\n\r";
 
+                if (!frame20)
+                {
                     _req->sendRequest(funcSuccess, funcError, Requester::Type::POST, &multiPart, m_uri, _now, _from_t_local, m_msg_id_out, m_conn, m_idd);
-
+                }
+                else
+                {
+                    _req->sendRequest(funcSuccess, funcError, Requester::Type::POST, &multiPart, m_uri, _now, _to_t_local, m_msg_id_out, m_conn, m_idd);
+                }
             }
             query_eq->exec();
             i++;

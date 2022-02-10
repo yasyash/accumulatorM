@@ -149,7 +149,17 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     if (_ggo > 0)
     {
         ggo = true;
-        qDebug () << "Transmit to GGO is working!\n\r";
+
+        int _ggo20 = cmdline_args.value(cmdline_args.indexOf("-ggo") +1).toInt();
+
+        if (_ggo20 == 20) {
+            ggo20 = true;
+            qDebug () << "Transmit to GGO is working by 20 minutes frame!\n\r";
+
+        } else {
+            qDebug () << "Transmit to GGO is working!\n\r";
+
+        }
 
     }
     else
@@ -167,7 +177,18 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
 
             if (init_str_list.indexOf("-ggo") >= 0){
                 ggo = true;
-                qDebug () << "Transmit to GGO is working from DB settings!\n\r";
+
+                int _ggo20 = init_str_list[init_str_list.indexOf("-ggo") +1].toInt();
+
+                if (_ggo20 == 20) {
+                    ggo20 = true;
+                    qDebug () << "Transmit to GGO is working from DB settings by 20 minutes frame!\n\r";
+
+                } else {
+                    qDebug () << "Transmit to GGO is working from DB settings!\n\r";
+
+                }
+
             }
 
         }
@@ -2927,83 +2948,92 @@ void processor::transactionDB(void)
 
     if (ggo && (m_threadPool->activeThreadCount() == 0))
     {
-        QSqlDatabase _conn;
+        int curr_min = 19; //hardcoded flag for each minutes transmitions
 
-        if (QSqlDatabase::contains( QString("weather_ggo")))
+        if (ggo20)
         {
-            {
+            curr_min =  QDateTime(QDateTime::currentDateTime()).toString("mm").toInt();
+        }
 
+        if ((curr_min == 19) || (curr_min == 39) || (curr_min == 59)) //condition is everytime true for each minutes transmition
+        {
+            QSqlDatabase _conn;
+
+            if (QSqlDatabase::contains( QString("weather_ggo")))
+            {
                 {
-                    QSqlDatabase _temp_db = QSqlDatabase::database( QString("weather_ggo"));
-                    _temp_db.close();
-                    qDebug() << "DB open = " <<_temp_db.isOpen() <<"\n\r";
+
+                    {
+                        QSqlDatabase _temp_db = QSqlDatabase::database( QString("weather_ggo"));
+                        _temp_db.close();
+                        qDebug() << "DB open = " <<_temp_db.isOpen() <<"\n\r";
+
+                    }
+                    QSqlDatabase::removeDatabase(QString("weather_ggo"));
+                    _conn = QSqlDatabase::cloneDatabase(*m_conn, QString("weather_ggo"));
 
                 }
-                QSqlDatabase::removeDatabase(QString("weather_ggo"));
+            } else {
                 _conn = QSqlDatabase::cloneDatabase(*m_conn, QString("weather_ggo"));
-
             }
-        } else {
-            _conn = QSqlDatabase::cloneDatabase(*m_conn, QString("weather_ggo"));
-        }
 
-        QDateTime local(QDateTime::currentDateTime());
-        QDateTime UTC(local.toUTC());
-        qint64 tz = QDateTime::currentDateTime().offsetFromUtc()/3600; //time zone
-        QString o = QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 )));
+            QDateTime local(QDateTime::currentDateTime());
+            QDateTime UTC(local.toUTC());
+            //qint64 tz = QDateTime::currentDateTime().offsetFromUtc()/3600; //time zone
+            QString o = QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 )));
 
-        qDebug() << "Rest API call is started...\n\r";
+            qDebug() << "Rest API call is started...\n\r";
 
 
-        QString select_st = "SELECT * FROM injection WHERE is_present = true and id = 2"; //id is hardcoded to 2 position
+            QString select_st = "SELECT * FROM injection WHERE is_present = true and id = 2"; //id is hardcoded to 2 position
 
-        QSqlQuery *query_inj = new QSqlQuery(*m_conn);
-        QSqlRecord rs_station;
+            QSqlQuery *query_inj = new QSqlQuery(*m_conn);
+            QSqlRecord rs_station;
 
-        query_inj->prepare(select_st);
-        query_inj->exec();
+            query_inj->prepare(select_st);
+            query_inj->exec();
 
-        //begin work
-        if(!query_inj->lastError().isValid())
-        {
-            while (query_inj->next()) {
-                rs_station = query_inj->record();
+            //begin work
+            if(!query_inj->lastError().isValid())
+            {
+                while (query_inj->next()) {
+                    rs_station = query_inj->record();
 
-                QString uri = QString(rs_station.value("uri").toString());
-                QString token = QString(rs_station.value("token").toString());
-                //QString locality = QString(rs_station.value("locality").toString());
-                QString indx = QString(rs_station.value("indx").toString());
-                QString idd = QString(rs_station.value("idd").toString());
-                int code = rs_station.value("code").toInt();
-                double msg_id = rs_station.value("msg_id").toDouble();
-                int msg_id_out = rs_station.value("msg_id_out").toInt();
+                    QString uri = QString(rs_station.value("uri").toString());
+                    QString token = QString(rs_station.value("token").toString());
+                    //QString locality = QString(rs_station.value("locality").toString());
+                    QString indx = QString(rs_station.value("indx").toString());
+                    QString idd = QString(rs_station.value("idd").toString());
+                    int code = rs_station.value("code").toInt();
+                    double msg_id = rs_station.value("msg_id").toDouble();
+                    int msg_id_out = rs_station.value("msg_id_out").toInt();
 
 
-                QString begin_t = QString(rs_station.value("date_time").toString());
-                QDateTime _begin_t = QDateTime::fromString(begin_t.left(19),"yyyy-MM-ddTHH:mm:ss");
+                    QString begin_t = QString(rs_station.value("date_time").toString());
+                    QDateTime _begin_t = QDateTime::fromString(begin_t.left(19),"yyyy-MM-ddTHH:mm:ss");
 
-                QString last_t = QString(rs_station.value("last_time").toString());
-                QDateTime _last_t = QDateTime::fromString(last_t.left(19),"yyyy-MM-ddTHH:mm:ss");
+                    QString last_t = QString(rs_station.value("last_time").toString());
+                    QDateTime _last_t = QDateTime::fromString(last_t.left(19),"yyyy-MM-ddTHH:mm:ss");
 
-                QString curr_t = QDateTime(QDateTime::currentDateTime()).toString("yyyy-MM-ddThh:mm:ss");
-                QDateTime _curr_t = QDateTime::fromString(curr_t.left(19),"yyyy-MM-ddTHH:mm:ss");
+                    QString curr_t = QDateTime(QDateTime::currentDateTime()).toString("yyyy-MM-ddThh:mm:ss");
+                    QDateTime _curr_t = QDateTime::fromString(curr_t.left(19),"yyyy-MM-ddTHH:mm:ss");
 
-                QDateTime _from_t = _begin_t.addSecs(1);
+                    QDateTime _from_t = _begin_t.addSecs(1);
 
-                if (_curr_t.addDays(-1) > _begin_t)
-                    _from_t = _curr_t.addDays(-1);
+                    if (_curr_t.addDays(-1) > _begin_t)
+                        _from_t = _curr_t.addDays(-1);
 
-                QDateTime __curr_t = _curr_t.addSecs(1);
-                qcollectorc *_qcollector = new qcollectorc(&_conn, idd, _from_t, __curr_t, _last_t, uri, code, token,  indx, msg_id, msg_id_out, this, verbose);
+                    QDateTime __curr_t = _curr_t.addSecs(1);
+                    qcollectorc *_qcollector = new qcollectorc(&_conn, idd, _from_t, __curr_t, _last_t, uri, code, token,  indx, msg_id, msg_id_out, this, verbose, ggo20);
 
-                m_threadPool->start(_qcollector);
+                    m_threadPool->start(_qcollector);
+                }
             }
         }
+
+        //end section of external REST API call
+
     }
-
-    //end section of external REST API call
-
-
 }
 void processor::startTransactTimer( QSqlDatabase *conn) //start by signal dbForm
 {

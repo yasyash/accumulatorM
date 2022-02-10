@@ -73,7 +73,7 @@ public:
 public:
 
     enum _status {MEASURING, DOWN, FAILURE, TEMP_NOT_READY, SENS_CHNG, SAMPLE_FILL, ELECTRONIC_ZERO_ADJUST, INSTRUMENT_WARM_UP, UNKNOWN, ABSENT,
-                 STANDBYORTEST, ZERO, SPAN, ZEROREF, SPANAUTO, INVALIDDATA};
+                  STANDBYORTEST, ZERO, SPAN, ZEROREF, SPANAUTO, INVALIDDATA};
     Q_ENUM(_status)
 
     static QMap<QString, int>   * ms_data; //assosiative array of polling data
@@ -186,6 +186,8 @@ private:
     int *m_transactTime;
     bool verbose; //verbose mode flag
     bool ggo = false; //GGO transmition mode
+    bool ggo20 = false;
+
 
     ups_status *m_ups = nullptr;   //member for UPS status
     QString m_ups_ip;
