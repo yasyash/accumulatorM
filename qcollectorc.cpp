@@ -218,7 +218,7 @@ void qcollectorc::run ()
         while (!_go_out) {
 
             QDateTime _from_t_local = _begin_t.addSecs(i*60 * (frame20 ? 0 : 1) + 60*_frame20*i);
-            QDateTime _to_t_local = _begin_t.addMSecs(i*60000 + 59999 * (frame20 ? 0 : 1) + 60000*_frame20*(i+1)); //add 999 mSec for 'between' sql frame
+            QDateTime _to_t_local = _begin_t.addMSecs(i*60000 * (frame20 ? 0 : 1) + 59999 * (frame20 ? 0 : 1) + 60000*_frame20*(i+1)); //add 999 mSec for 'between' sql frame
             if (_to_t_local >= m_to_t)
                 _go_out = true;
 
