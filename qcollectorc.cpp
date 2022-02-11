@@ -250,7 +250,8 @@ void qcollectorc::run ()
                                 rs_data = query_data->record();
                                 _measure += rs_data.field("measure").value().toDouble();
                             }
-                            _data_one = {{"date_time",rs_data.field("date_time").value().toString().append(QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 ))))},{"unit",rs_sensor.field("unit_name").value().toString()},{"measure", _measure/query_data->size()}};
+                            _data_one = {{"date_time",rs_data.field("date_time").value().toString().append(QString("+").append((QDateTime::currentDateTime().offsetFromUtc()/3600 < 10) ? (QString("0").append(QString::number( QDateTime::currentDateTime().offsetFromUtc()/3600))) : (QString::number(QDateTime::currentDateTime().offsetFromUtc()/3600 ))))},{"unit",rs_sensor.field("unit_name").value().toString()},{"measure",QString::number( _measure/query_data->size(),'f',
+                                                                                                                                                                                                                                                                                                                                                                                                                          (chem_precision.value(_type) != 0) ? chem_precision.value(_type) : 1)}};
                             //QJsonObject _chemical_one = {{aspiap_dir.value(rs_sensor.field("typemeasure").value().toString()),_data_one}};
 
                             //QJsonObject _chemical_one;

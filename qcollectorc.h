@@ -34,7 +34,7 @@
 #include "requester.h"
 
 const QHash<QString, QString> aspiap_dir = {
-    {"Пыль общая", "P001"},
+    {"Пыль общая", "TSP"},
     {"PM1", "PM1"},
     {"PM2.5", "P301"},
     {"PM10", "P201"},
@@ -45,6 +45,8 @@ const QHash<QString, QString> aspiap_dir = {
     {"HF", "P030"},
     {"HCl", "P015"},
     {"м,п-ксилол", "м,п-ксилол"},
+    {"м-ксилол", "м-ксилол"},
+    {"п-ксилол", "п-ксилол"},
     {"о-ксилол", "о-ксилол"},
     {"O3", "P007"},
     {"H2S", "P008"},
@@ -57,6 +59,41 @@ const QHash<QString, QString> aspiap_dir = {
     {"хлорбензол", "P077"},
     {"этилбензол", "P083"},
     {"Атм. давление", "Атм. давление"}
+};
+
+const QHash<QString, int> chem_precision = {
+    {"Пыль общая", 3},
+    {"PM1", 3},
+    {"PM2.5", 3},
+    {"PM10", 3},
+    {"NO2", 3},
+    {"NO", 3},
+    {"NH3", 3},
+    {"бензол", 3},
+    {"HF", 3},
+    {"HCl", 3},
+    {"м,п-ксилол", 3},
+    {"м-ксилол", 3},
+    {"п-ксилол", 3},
+    {"о-ксилол", 3},
+    {"O3", 3},
+    {"H2S", 3},
+    {"SO2", 3},
+    {"стирол", 3},
+    {"толуол", 3},
+    {"CO", 1},
+    {"фенол", 3},
+    {"CH2O", 3},
+    {"хлорбензол", 3},
+    {"этилбензол", 3},
+    {"Атм. давление", 1},
+    {"Влажность внутр.", 1},
+    {"Влажность внеш.", 1},
+    {"Скорость ветра", 1},
+    {"Направление ветра", 1},
+    {"Темп. внутренняя", 1},
+    {"Темп. внешняя", 1},
+    {"Интенс. осадков", 1}
 };
 
 class qcollectorc : public QObject, public QRunnable
@@ -80,7 +117,7 @@ public:
 public:
     explicit qcollectorc(QSqlDatabase * _conn, QString &idd, QDateTime &_from_t, QDateTime &_to_t, QDateTime &_last_t, QString &uri, int &code, QString &token, QString &locality, double &msg_id, int &msg_id_out, QObject *parent, bool _verbose = false, bool _frame20 = false);
     ~qcollectorc();
-   // void funcSuccess(const QJsonObject &_resp,const QString &uri,const QDateTime &_date_time,const QDateTime &_last_time,const int &_msg_id, QSqlDatabase * m_conn,const QString &idd);
+    // void funcSuccess(const QJsonObject &_resp,const QString &uri,const QDateTime &_date_time,const QDateTime &_last_time,const int &_msg_id, QSqlDatabase * m_conn,const QString &idd);
     //void funcError(const QJsonObject &_resp,const QString &uri,const QDateTime &_date_time,const QDateTime &_last_time,const int &_msg_id, QSqlDatabase * m_conn,const QString &idd);
 private:
     void run();
