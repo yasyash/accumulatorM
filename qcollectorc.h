@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Yaroslav Shkliar <mail@ilit.ru>
+ * Copyright © 2021-2022 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -44,7 +44,7 @@ const QHash<QString, QString> aspiap_dir = {
     {"бензол", "P028"},
     {"HF", "P030"},
     {"HCl", "P015"},
-    {"м,п-ксилол", "м,п-ксилол"},
+    {"м,п-ксилол", "P447"},
     {"м-ксилол", "P247"},
     {"п-ксилол", "P347"},
     {"о-ксилол", "P147"},
@@ -68,10 +68,10 @@ const QHash<QString, int> chem_precision = {
     {"PM10", 3},
     {"NO2", 3},
     {"NO", 3},
-    {"NH3", 3},
+    {"NH3", 2},
     {"бензол", 3},
     {"HF", 3},
-    {"HCl", 3},
+    {"HCl", 2},
     {"м,п-ксилол", 3},
     {"м-ксилол", 3},
     {"п-ксилол", 3},
