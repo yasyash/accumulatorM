@@ -316,12 +316,13 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        if ((_result > 50.0f)&&(_result < 50.0f)){
+                        if ((_result > -50.0f)&&(_result < 50.0f)){
 
                             measure_prev->insert("temp_out",  _result);
                             wrong++;
                         }
                     }
+
                     _ind  =   _tmp.indexOf("Tp");
 
                     if (_ind != -1){
