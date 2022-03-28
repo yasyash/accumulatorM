@@ -316,8 +316,11 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure_prev->insert("temp_out",  _result);
-                        wrong++;
+                        if ((_result > 50.0f)&&(_result < 50.0f)){
+
+                            measure_prev->insert("temp_out",  _result);
+                            wrong++;
+                        }
                     }
                     _ind  =   _tmp.indexOf("Tp");
 
@@ -341,17 +344,21 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure_prev->insert("hum_out",  _result);
-                        wrong++;
+                        if (_result > 0){
+                            measure_prev->insert("hum_out",  _result);
+                            wrong++;
+                        }
 
                     }
                     _ind  =   _tmp.indexOf("Pa");
 
                     if (_ind != -1){
                         _result = (_tmp.mid(2,_tmp.length()-3).toFloat())/100*75; //hPa to mmHg
-                        measure_prev->insert("bar",  _result);
-                        wrong++;
+                        if ((_result > 0) && (_result < 800.0f)){
 
+                            measure_prev->insert("bar",  _result);
+                            wrong++;
+                        }
                     }
 
                     _ind  =   _tmp.indexOf("Sa");
