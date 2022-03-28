@@ -307,7 +307,7 @@ void MeteoTcpSock::readData()
             float _result;
             int wrong = 0;
 
-            if (list.length() > 1){
+            if (list.length() > 8){ //fulfill components detection
                 while (_strli.hasNext())
                 {
 
@@ -316,14 +316,14 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure->insert("temp_out", measure->value("temp_out") + _result);
+                        measure_prev->insert("temp_out",  _result);
                         wrong++;
                     }
                     _ind  =   _tmp.indexOf("Tp");
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure->insert("dew_pt", measure->value("dew_pt") + _result);
+                        measure_prev->insert("dew_pt",  _result);
                         wrong++;
 
                     }
@@ -332,7 +332,7 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure->insert("chill_wind", measure->value("chill_wind") + _result);
+                        measure_prev->insert("chill_wind",  _result);
                         wrong++;
 
                     }
@@ -341,7 +341,7 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure->insert("hum_out", measure->value("hum_out") + _result);
+                        measure_prev->insert("hum_out",  _result);
                         wrong++;
 
                     }
@@ -349,7 +349,7 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = (_tmp.mid(2,_tmp.length()-3).toFloat())/100*75; //hPa to mmHg
-                        measure->insert("bar", measure->value("bar") + _result);
+                        measure_prev->insert("bar",  _result);
                         wrong++;
 
                     }
@@ -358,7 +358,7 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure->insert("speed_wind", measure->value("speed_wind") + _result);
+                        measure_prev->insert("speed_wind",  _result);
                         wrong++;
 
                     }
@@ -369,7 +369,8 @@ void MeteoTcpSock::readData()
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
                         measure_dir_wind->insert("dir_wind_sin", measure_dir_wind->value("dir_wind_sin") + float(qSin(qreal(_result * 3.1415926535f / 180.0f))));
                         measure_dir_wind->insert("dir_wind_cos", measure_dir_wind->value("dir_wind_cos") +  float(qCos(qreal(_result * 3.1415926535f / 180.0f))));
-                        measure->insert("dir_wind", measure->value("dir_wind") + _result);
+                        measure_prev->insert("dir_wind",  _result);
+
                         wrong++;
 
                     }
@@ -378,7 +379,7 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure->insert("rain_rate", measure->value("rain_rate") + _result);
+                        measure_prev->insert("rain_rate",  _result);
                         wrong++;
 
                     }
@@ -386,15 +387,35 @@ void MeteoTcpSock::readData()
 
                     if (_ind != -1){
                         _result = _tmp.mid(2,_tmp.length()-3).toFloat();
-                        measure->insert("rain", measure->value("rain") + _result);
+                        measure_prev->insert("rain",  _result);
                         wrong++;
 
                     }
 
 
                 }
-                if (wrong == 9)
+                if (wrong == 9){
                     sample_t++;
+
+                    measure->insert("temp_out", measure->value("temp_out") + measure_prev->value("temp_out"));
+
+                    measure->insert("dew_pt", measure->value("dew_pt") + measure_prev->value("dew_pt"));
+
+                    measure->insert("bar", measure->value("bar") + measure_prev->value("bar"));
+
+                    measure->insert("chill_wind", measure->value("chill_wind") + measure_prev->value("chill_wind"));
+
+                    measure->insert("hum_out", measure->value("hum_out") + measure_prev->value("hum_out"));
+
+                    measure->insert("speed_wind", measure->value("speed_wind") + measure_prev->value("speed_wind"));
+
+                    measure->insert("dir_wind", measure->value("dir_wind") + measure_prev->value("dir_wind"));
+
+                    measure->insert("rain_rate", measure->value("rain_rate") + measure_prev->value("rain_rate"));
+
+                    measure->insert("rain", measure->value("rain") + measure_prev->value("rain"));
+
+                }
 
                 if (verbose)
                 {
