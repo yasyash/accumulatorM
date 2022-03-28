@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2018-2019 Yaroslav Shkliar <mail@ilit.ru>
  *
  * This library is free software; you can redistribute it and/or
@@ -417,28 +417,33 @@ void MeteoTcpSock::readData()
 
                 }
 
-                if (verbose)
-                {
-                    QMap<QString, float>::iterator _iter_meteo = measure->begin();
-
-                    qDebug() << "\n\rMeteostation parced data: \n\r";
-
-                    while (_iter_meteo != measure->end())
+                if (wrong == 9){
+                    if (verbose)
                     {
-                        if ((_iter_meteo.key() == "temp_in") || (_iter_meteo.key() == "hum_in"))
+                        QMap<QString, float>::iterator _iter_meteo = measure->begin();
+
+                        qDebug() << "\n\rMeteostation parced data: \n\r";
+
+                        while (_iter_meteo != measure->end())
                         {
-                            qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()));
-                        }
-                        else
-                        {
-                            qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()) / sample_t);
+                            if ((_iter_meteo.key() == "temp_in") || (_iter_meteo.key() == "hum_in"))
+                            {
+                                qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()));
+                            }
+                            else
+                            {
+                                qDebug() << "   "<< _iter_meteo.key()<<" = " << (measure->value(_iter_meteo.key()) / sample_t);
+
+                            }
+                            _iter_meteo++;
 
                         }
-                        _iter_meteo++;
-
+                    } else {
+                        qDebug() << "Meteostation's data is parsed... \n\r" ;
                     }
                 } else {
-                    qDebug() << "Meteostation's data parsed \n\r" ;
+                    qDebug() << "Meteostation's data IS NOT PARCED... \n\r" ;
+
                 }
             }
         }
