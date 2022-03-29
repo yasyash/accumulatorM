@@ -143,7 +143,7 @@ void TopasIP::readData()
                     measure->insert("PM10", float((__pm10*0.01 - 2.56)/100));
                     measure->insert("PM2.5", float((__pm25*0.01 - 2.56))/1000);
                     measure->insert("PM1", float((__pm1*0.01 - 2.56))/1000);
-                    measure->insert("TMP_PM", float((__tmp*0.1 - 256)));
+                    measure->insert("TMP_PM", float((__tmp*0.1 - 256)/90 - 0.15)*40.0f - 40.0f + 6.0f);
                     measure->insert("HUM_PM", float((__hum*0.1 - 256)));
 
 
