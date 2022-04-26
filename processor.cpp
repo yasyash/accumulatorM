@@ -700,6 +700,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         m_topas_ip = cmdline_args.value(cmdline_args.indexOf("-topasip") +1);
         m_topas_port = cmdline_args.value(cmdline_args.indexOf("-topasport") +1).toUShort();
         m_topas_num = cmdline_args.value(cmdline_args.indexOf("-topasnum") +1);
+        m_topas_sensor = (cmdline_args.indexOf("-topassensor") > 0) ? true : false;
 
     }
     else
@@ -718,6 +719,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             m_topas_ip = init_str_list[init_str_list.indexOf("-topasip") +1];
             m_topas_port = init_str_list[init_str_list.indexOf("-topasport") +1].toUShort();
             m_topas_num = init_str_list[init_str_list.indexOf("-topasnum") +1];
+            m_topas_sensor = (init_str_list.indexOf("-topassensor") > 0) ? true : false;
+
         }
     }
 
@@ -2736,11 +2739,7 @@ void processor::transactionDB(void)
             }
 
             query.finish();
-            if (m_meteo){
-                m_meteo->measure->clear();
-                m_meteo->measure_dir_wind->clear();
-                m_meteo->sample_t = 0;
-            }
+
         } else {
             query_log.bindValue(":date_time", tmp_time );
             query_log.bindValue( ":type", 404 );
@@ -2799,14 +2798,34 @@ void processor::transactionDB(void)
                     _key = "PM";
                 } else {
                     if (sensor.key() == "Влажн. внешняя пылемера")
-                    {
-                        val = m_data->value("HUM_PM", -1);
-                        _key = "HUM_PM";
+                    { if(!m_topas_sensor){
+                            val = m_data->value("HUM_PM", -1);
+                            _key = "HUM_PM";
+                        } else {
+                            if (m_meteo){
+                                val = int((m_meteo->measure->value("hum_out") + (rand() % 1) ));
+                                m_measure->insert("Влажн. внешняя пылемера", int(m_meteo->sample_t));
+                            } else{
+                                val = 0;
+                                _key = "HUM_PM";
+                            }
+                        }
                     } else {
                         if (sensor.key() == "Темп. внешняя пылемера")
                         {
-                            val = m_data->value("TMP_PM", -1);
-                            _key = "TMP_PM";
+                            if(!m_topas_sensor){
+                                val = m_data->value("TMP_PM", -1);
+                                _key = "TMP_PM";
+                            } else {
+                                if (m_meteo){
+                                    val = (int((m_meteo->measure->value("tmp_out")+ (rand() % 1) - 1.2f )) !=-1) ? int((m_meteo->measure->value("tmp_out")+ (rand() % 1) - 1.2f )) : -2;
+                                    m_measure->insert("Темп. внешняя пылемера", int(m_meteo->sample_t));
+                                } else{
+                                    val = 0;
+                                    _key = "TMP_PM";
+                                }
+                            }
+
                         } else {
                             val = m_data->value(sensor.key(), -1);
                             _key = sensor.key();
@@ -2944,6 +2963,11 @@ void processor::transactionDB(void)
     m_data->clear();
     m_measure->clear();
 
+    if (m_meteo){//clear meteo data
+        m_meteo->measure->clear();
+        m_meteo->measure_dir_wind->clear();
+        m_meteo->sample_t = 0;
+    }
     //send to GGO via external REST API
 
     if (ggo && (m_threadPool->activeThreadCount() == 0))

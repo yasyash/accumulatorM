@@ -239,6 +239,7 @@ private:
     QString m_topas_ip;
     quint16 m_topas_port;
     QString m_topas_num;
+    bool m_topas_sensor = false;
 
 
     GammaET *m_gammaet = nullptr;
