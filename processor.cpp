@@ -2818,7 +2818,7 @@ void processor::transactionDB(void)
                                 _key = "TMP_PM";
                             } else {
                                 if (m_meteo){
-                                    val = (int((m_meteo->measure->value("tmp_out")+ (rand() % 1) - 1.2f )) !=-1) ? int((m_meteo->measure->value("tmp_out")+ (rand() % 1) - 1.2f )) : -2;
+                                    val = (int((m_meteo->measure->value("temp_out")+ (rand() % 1) - 1.2f )) !=-1) ? int((m_meteo->measure->value("tmp_out")+ (rand() % 1) - 1.2f )) : -2;
                                     m_measure->insert("Темп. внешняя пылемера", int(m_meteo->sample_t));
                                 } else{
                                     val = 0;
